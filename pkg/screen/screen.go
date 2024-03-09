@@ -14,20 +14,25 @@ const (
 type Data = [Pixels]byte
 
 type Screen struct {
-	Hot  Data
-	Cold Data
+	Background Data
+	Hot        Data
+	Cold       Data
 }
 
 func New() *Screen {
-	s := Screen{}
+	return &Screen{}
+}
 
-	s.Clear()
-
-	return &s
+func (s *Screen) SetBackground(x, y, v byte) {
+	s.Background[int(x)+int(y)*Width] = v
 }
 
 func (s *Screen) SetPixel(x, y, v byte) {
 	s.Hot[int(x)+int(y)*Width] = v
+}
+
+func (s *Screen) GetBackground(x, y byte) byte {
+	return s.Background[int(x)+int(y)*Width]
 }
 
 func (s *Screen) GetPixel(x, y byte) byte {
@@ -36,12 +41,9 @@ func (s *Screen) GetPixel(x, y byte) byte {
 
 func (s *Screen) Blit() {
 	copy(s.Cold[:], s.Hot[:])
-	s.Clear()
-}
 
-func (s *Screen) Clear() {
 	for i := range Pixels {
-		s.Hot[i] = 0
+		s.Background[i] = 0
 	}
 }
 

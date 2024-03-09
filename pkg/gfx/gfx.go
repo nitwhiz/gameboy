@@ -92,7 +92,7 @@ func (g *GFX) updateLCDStatus() bool {
 	ly := g.MMU.Read(addr.LY)
 	currentMode := PPUMode(bits.GetPPUMode(stat))
 
-	nextMode := ModeHBlank
+	nextMode := currentMode
 	reqInterrupt := false
 
 	if ly >= VisibleScanlineCount {

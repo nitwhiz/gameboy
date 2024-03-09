@@ -39,6 +39,10 @@ func getPalette(attributes byte) uint16 {
 }
 
 func (g *GFX) renderBackground(lcdc, ly byte) {
+	if ly >= screen.Height {
+		return
+	}
+
 	tileDataAddr := getBackgroundAndWindowTileDataArea(lcdc)
 
 	unsigned := true
@@ -79,19 +83,16 @@ func (g *GFX) renderBackground(lcdc, ly byte) {
 			x = pixel - wx
 		}
 
-		if ly >= screen.Height {
-			continue
-		}
-
 		tileCol := uint16(x / 8)
 		tileLoc := tileDataAddr
+		tileAddr := backgroundDataAddr + tileRow + tileCol
 
 		if unsigned {
-			tileNum := int16(g.MMU.Read(backgroundDataAddr + tileRow + tileCol))
+			tileNum := int16(g.MMU.Read(tileAddr))
 			tileLoc += uint16(tileNum * 16)
 		} else {
-			tileNum := int16(int8(g.MMU.Read(backgroundDataAddr + tileRow + tileCol)))
-			tileLoc += uint16((tileNum + 128) * 16)
+			tileNum := int16(int8(g.MMU.Read(tileAddr)))
+			tileLoc = uint16(int32(tileLoc) + int32((tileNum+128)*16))
 		}
 
 		line := (y % 8) * 2
@@ -106,6 +107,7 @@ func (g *GFX) renderBackground(lcdc, ly byte) {
 		col := g.getColor(colNum, addr.BGP)
 
 		g.Screen.SetPixel(pixel, ly, col)
+		g.Screen.SetBackground(pixel, ly, colNum)
 	}
 }
 
@@ -175,7 +177,7 @@ func (g *GFX) renderSprites(lcdc, ly byte) {
 
 			col := g.getColor(colNum, pal)
 
-			if !priority || g.Screen.GetPixel(byte(pixel), byte(scanline)) == 0xFF {
+			if !priority || g.Screen.GetBackground(byte(pixel), byte(scanline)) == 0 {
 				g.Screen.SetPixel(byte(pixel), byte(scanline), col)
 			}
 		}
