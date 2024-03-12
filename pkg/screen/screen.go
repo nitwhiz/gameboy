@@ -52,7 +52,7 @@ func (s *Screen) Display() Data {
 }
 
 func (s *Screen) ColorModel() color.Model {
-	return color.RGBAModel
+	return color.GrayModel
 }
 
 func (s *Screen) Bounds() image.Rectangle {
@@ -60,12 +60,7 @@ func (s *Screen) Bounds() image.Rectangle {
 }
 
 func (s *Screen) At(x, y int) color.Color {
-	c := s.Cold[x+y*Width]
-
-	return color.RGBA{
-		R: c,
-		G: c,
-		B: c,
-		A: 0xFF,
+	return color.Gray{
+		Y: s.Cold[x+y*Width],
 	}
 }
