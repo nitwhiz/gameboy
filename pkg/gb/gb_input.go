@@ -7,9 +7,9 @@ import (
 
 func (g *GameBoy) PressButton(button input.Button) {
 	g.Input.Press(button)
-	g.IM.Request(interrupt.Joypad)
 }
 
 func (g *GameBoy) ReleaseButton(button input.Button) {
 	g.Input.Release(button)
+	g.IM.Request(interrupt.Joypad)
 }
