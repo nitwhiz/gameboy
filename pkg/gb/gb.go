@@ -2,7 +2,6 @@ package gb
 
 import (
 	"context"
-	"errors"
 	"github.com/nitwhiz/gameboy/pkg/cpu"
 	"github.com/nitwhiz/gameboy/pkg/gfx"
 	"github.com/nitwhiz/gameboy/pkg/input"
@@ -11,6 +10,7 @@ import (
 	"github.com/nitwhiz/gameboy/pkg/mmu"
 	"github.com/nitwhiz/gameboy/pkg/quarz"
 	"github.com/nitwhiz/gameboy/pkg/stack"
+	"log"
 	"sync"
 )
 
@@ -78,10 +78,6 @@ func New(options ...GameBoyOption) (*GameBoy, error) {
 		}
 	}
 
-	if g.MMU.Cartridge == nil {
-		return nil, errors.New("missing cartridge")
-	}
-
 	return &gameBoy, nil
 }
 
@@ -96,6 +92,11 @@ func (g *GameBoy) Unlock() {
 func (g *GameBoy) Update(ctx context.Context) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
+
+	if g.MMU.Cartridge == nil {
+		log.Println("missing cartridge, update skipped")
+		return
+	}
 
 	executedTicks := 0
 
