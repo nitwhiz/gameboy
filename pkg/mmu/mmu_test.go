@@ -4,11 +4,14 @@ import (
 	"fmt"
 	"github.com/nitwhiz/gameboy/pkg/addr"
 	"github.com/nitwhiz/gameboy/pkg/cartridge"
+	"github.com/nitwhiz/gameboy/pkg/input"
 	"github.com/nitwhiz/gameboy/pkg/memory"
 	"reflect"
 	"testing"
 	"time"
 )
+
+var mmuReadBench uint8
 
 func testWrite(t *testing.T, m *memory.Memory, start uint16, end uint16, target any, writeOffset int) {
 	tt := reflect.ValueOf(target)
@@ -23,18 +26,18 @@ func testWrite(t *testing.T, m *memory.Memory, start uint16, end uint16, target 
 		t.Fatal("target must be pointer to array")
 	}
 
-	mman := MMU{
+	mmu := MMU{
 		Cartridge:      nil,
 		Memory:         m,
 		SerialReceiver: nil,
 	}
 
-	mman.Write(start, 0xDE)
-	mman.Write(start+1, 0xAD)
-	mman.Write(start+2, 0xCA)
-	mman.Write(start+3, 0xFE)
-	mman.Write(start+5, 0xBE)
-	mman.Write(start+6, 0xEF)
+	mmu.Write(start, 0xDE)
+	mmu.Write(start+1, 0xAD)
+	mmu.Write(start+2, 0xCA)
+	mmu.Write(start+3, 0xFE)
+	mmu.Write(start+5, 0xBE)
+	mmu.Write(start+6, 0xEF)
 
 	res1 := ""
 
@@ -46,12 +49,12 @@ func testWrite(t *testing.T, m *memory.Memory, start uint16, end uint16, target 
 		t.Fatalf("expected 'DEADCAFE00BEEF', got '%s'", res1)
 	}
 
-	mman.Write(end-7, 0xDE)
-	mman.Write(end-6, 0xAD)
-	mman.Write(end-5, 0xCA)
-	mman.Write(end-4, 0xFE)
-	mman.Write(end-2, 0xBE)
-	mman.Write(end-1, 0xEF)
+	mmu.Write(end-7, 0xDE)
+	mmu.Write(end-6, 0xAD)
+	mmu.Write(end-5, 0xCA)
+	mmu.Write(end-4, 0xFE)
+	mmu.Write(end-2, 0xBE)
+	mmu.Write(end-1, 0xEF)
 
 	res2 := ""
 
@@ -77,7 +80,7 @@ func testRead(t *testing.T, m *memory.Memory, start uint16, end uint16, target a
 		t.Fatal("target must be pointer to array")
 	}
 
-	mman := MMU{
+	mmu := MMU{
 		Cartridge:      nil,
 		Memory:         m,
 		SerialReceiver: nil,
@@ -93,7 +96,7 @@ func testRead(t *testing.T, m *memory.Memory, start uint16, end uint16, target a
 	res1 := ""
 
 	for i := uint16(0); i < 7; i++ {
-		res1 += fmt.Sprintf("%02X", mman.Read(start+i))
+		res1 += fmt.Sprintf("%02X", mmu.Read(start+i))
 	}
 
 	if res1 != "DEADCAFE00BEEF" {
@@ -196,7 +199,7 @@ func TestMMU_ROM(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	mman := MMU{
+	mmu := MMU{
 		Cartridge:      cart,
 		Memory:         m,
 		SerialReceiver: nil,
@@ -205,7 +208,7 @@ func TestMMU_ROM(t *testing.T) {
 	res2 := ""
 
 	for i := 0; i < 7; i++ {
-		res2 += fmt.Sprintf("%02X", mman.Read(0x1250+uint16(i)))
+		res2 += fmt.Sprintf("%02X", mmu.Read(0x1250+uint16(i)))
 	}
 
 	if res2 != "DEADCAFE00BEEF" {
@@ -218,7 +221,7 @@ func TestSBReceiver(t *testing.T) {
 
 	m := memory.New()
 
-	mman := MMU{
+	mmu := MMU{
 		Cartridge: nil,
 		Memory:    m,
 		SerialReceiver: func(b byte) {
@@ -228,12 +231,89 @@ func TestSBReceiver(t *testing.T) {
 		},
 	}
 
-	mman.Write(0xFF01, 0xAB)
-	mman.Write(0xFF02, 0x81)
+	mmu.Write(0xFF01, 0xAB)
+	mmu.Write(0xFF02, 0x81)
 
 	select {
 	case <-time.After(time.Second * 1):
 		t.Fatal("expected byte 0xAB not read read in 1 second")
 	case <-done:
 	}
+}
+
+func BenchmarkMMUWrite(b *testing.B) {
+	m := memory.New()
+
+	romData := make([]byte, 0x8000)
+
+	romData[addr.CartridgeRomSize] = 1
+	romData[addr.CartridgeType] = byte(cartridge.TypeROM)
+
+	romData[0x1250] = 0xDE
+	romData[0x1251] = 0xAD
+	romData[0x1252] = 0xCA
+	romData[0x1253] = 0xFE
+	romData[0x1255] = 0xBE
+	romData[0x1256] = 0xEF
+
+	cart, err := cartridge.New(romData)
+
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	mmu := MMU{
+		Cartridge:      cart,
+		Memory:         m,
+		SerialReceiver: nil,
+	}
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		for a := range uint16(0xFFFF) {
+			mmu.Write(a, 0x13)
+		}
+	}
+}
+
+func BenchmarkMMURead(b *testing.B) {
+	m := memory.New()
+
+	romData := make([]byte, 0x8000)
+
+	romData[addr.CartridgeRomSize] = 1
+	romData[addr.CartridgeType] = byte(cartridge.TypeROM)
+
+	romData[0x1250] = 0xDE
+	romData[0x1251] = 0xAD
+	romData[0x1252] = 0xCA
+	romData[0x1253] = 0xFE
+	romData[0x1255] = 0xBE
+	romData[0x1256] = 0xEF
+
+	cart, err := cartridge.New(romData)
+
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	mmu := MMU{
+		Cartridge:      cart,
+		Memory:         m,
+		SerialReceiver: nil,
+		Input:          input.NewState(),
+	}
+
+	b.ResetTimer()
+
+	var v uint8
+
+	for i := 0; i < b.N; i++ {
+		for a := range uint16(0xFFFF) {
+			v = mmu.Read(a)
+		}
+	}
+
+	mmuReadBench = v
 }
