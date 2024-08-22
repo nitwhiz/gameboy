@@ -93,7 +93,7 @@ func (m *MMU) writeIO(address uint16, v byte) {
 	case address == addr.JOYP:
 		m.Memory.IO[address-addr.MemIOBegin] = v & 0b00110000
 	case address == addr.SC:
-		if v == 0x81 {
+		if bits.Test(v, 7) && bits.Test(v, 0) {
 			if m.SerialReceiver != nil {
 				m.SerialReceiver(m.Read(addr.SB))
 			}

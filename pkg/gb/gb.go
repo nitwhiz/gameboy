@@ -32,6 +32,8 @@ type GameBoy struct {
 
 	ExecuteNextOpcodeFunc ExecuteNextOpcodeFunc
 
+	HaltBug int
+
 	mu *sync.Mutex
 }
 
@@ -114,6 +116,14 @@ func (g *GameBoy) Update(ctx context.Context) {
 			ticks += 1
 		} else {
 			ticks += int(g.ExecuteNextOpcodeFunc(g))
+
+			if g.HaltBug > 0 {
+				if g.HaltBug == 1 {
+					g.CPU.PC.Set(g.CPU.PC.Val() - 1)
+				}
+
+				g.HaltBug--
+			}
 		}
 
 		g.TickTimers(ticks)

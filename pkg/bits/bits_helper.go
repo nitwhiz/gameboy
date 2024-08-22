@@ -1,5 +1,7 @@
 package bits
 
+import "math"
+
 // IsTACEnabled returns the status of bit 2 of addr.TAC
 func IsTACEnabled(tac byte) bool {
 	return Test(tac, 2)
@@ -66,4 +68,20 @@ func IsJOYPSelectButtons(joyp byte) bool {
 
 func IsJOYPSelectDPad(joyp byte) bool {
 	return !Test(joyp, 4)
+}
+
+func GetCountIn(v int) int {
+	return int(math.Log2(float64(v))) + 1
+}
+
+func GetAllOnes(count int) byte {
+	v := byte(0)
+
+	if count > 0 {
+		for i := 0; i < count; i++ {
+			v |= 1 << i
+		}
+	}
+
+	return v
 }

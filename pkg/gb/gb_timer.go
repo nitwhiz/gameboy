@@ -10,10 +10,10 @@ import (
 )
 
 func (g *GameBoy) TickTimers(ticks int) {
-	divWrapped := g.DIVTimerTicks.Increase(float64(ticks) * quarz.TimerTicksPerCPUTick)
+	divWrapCount := g.DIVTimerTicks.Increase(float64(ticks) * quarz.TimerTicksPerCPUTick)
 
-	if divWrapped {
-		g.MMU.SetDIV(g.MMU.Read(addr.DIV) + 1)
+	if divWrapCount > 0 {
+		g.MMU.SetDIV(byte(int(g.MMU.Read(addr.DIV)) + divWrapCount))
 	}
 
 	tac := g.MMU.Read(addr.TAC)
@@ -26,10 +26,10 @@ func (g *GameBoy) TickTimers(ticks int) {
 			panic(errors.New(fmt.Sprintf("missing clock speed: %d", clockSpeed)))
 		}
 
-		timaWrapped := g.TIMATimerTicks.Increase(float64(ticks) * ticksPerCPUTick)
+		timaWrapCount := g.TIMATimerTicks.Increase(float64(ticks) * ticksPerCPUTick)
 
-		if timaWrapped {
-			tima := int(g.MMU.Read(addr.TIMA)) + 1
+		if timaWrapCount > 0 {
+			tima := int(g.MMU.Read(addr.TIMA)) + timaWrapCount
 
 			if tima > 0xFF {
 				g.MMU.Write(addr.TIMA, g.MMU.Read(addr.TMA))

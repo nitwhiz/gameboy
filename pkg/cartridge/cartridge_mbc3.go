@@ -68,7 +68,11 @@ func (c *MBC3) WriteROM(address uint16, v byte) {
 	case address < 0x2000:
 		// RAM Enable
 
-		c.RAMEnabled = (v & 0xA) != 0
+		if v&0x0F == 0x0A {
+			c.RAMEnabled = true
+		} else if v&0x0F == 0 {
+			c.RAMEnabled = false
+		}
 	case address < 0x4000:
 		// ROM Bank Number
 

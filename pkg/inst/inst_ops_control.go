@@ -24,11 +24,17 @@ func addControlHandlers() {
 
 	// HALT
 	h.add(0x76, func(g *gb.GameBoy) (ticks byte) {
-		dontHalt := !g.CPU.IME && (g.MMU.Read(addr.IE)&g.MMU.Read(addr.IF) != 0)
+		haltBug := !g.CPU.IME && ((g.MMU.Read(addr.IE) & g.MMU.Read(addr.IF) & 0x1F) != 0)
 
-		if !dontHalt {
+		if haltBug {
+			g.HaltBug = 2
+			g.CPU.Halt = false
+		} else {
+			g.HaltBug = 0
 			g.CPU.Halt = true
 		}
+
+		g.CPU.Halt = true
 
 		return 4
 	})

@@ -56,13 +56,13 @@ func New(mmu *mmu.MMU, im *interrupt.Manager) *GFX {
 func (g *GFX) Update(ticks int) {
 	lcdEnabled := g.updateLCDStatus()
 
-	nextScanline := false
+	nextScanline := 0
 
 	if lcdEnabled {
 		nextScanline = g.Ticks.Increase(ticks)
 	}
 
-	if nextScanline {
+	if nextScanline > 0 {
 		currentLine := g.MMU.IncLY()
 
 		if currentLine > ScanlineCount {

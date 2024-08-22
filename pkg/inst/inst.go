@@ -1,8 +1,6 @@
 package inst
 
 import (
-	"errors"
-	"fmt"
 	"github.com/nitwhiz/gameboy/pkg/gb"
 	"log"
 )
@@ -35,7 +33,7 @@ func (i *table) executeNextOpcode(g *gb.GameBoy) (ticks byte) {
 	hand := i.handler(code)
 
 	if hand == nil {
-		panic(errors.New(fmt.Sprintf("missing handler for opcode 0x%02X", code)))
+		return 0
 	}
 
 	return hand(g)
