@@ -25,7 +25,7 @@ func (t *TickCounter[T]) Increase(v T) int {
 
 	if t.Value >= t.Wrap {
 		wrapCount = (int)(t.Value / t.Wrap)
-		t.Value -= t.Wrap
+		t.Value -= t.Wrap * T(wrapCount)
 	}
 
 	return wrapCount
