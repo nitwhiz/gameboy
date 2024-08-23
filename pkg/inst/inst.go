@@ -1,8 +1,9 @@
 package inst
 
 import (
+	"fmt"
 	"github.com/nitwhiz/gameboy/pkg/gb"
-	"log"
+	"log/slog"
 	"sync"
 )
 
@@ -21,7 +22,7 @@ var initLock = &sync.Mutex{}
 
 func (i *table) add(code byte, inst handler) {
 	if foundI := i[code]; foundI != nil {
-		log.Printf("code %2X is already defined\n", code)
+		slog.Warn("code is already defined", "code", fmt.Sprintf("%2X", code))
 		return
 	}
 

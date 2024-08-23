@@ -3,7 +3,7 @@ package main
 import (
 	"cmp"
 	"html/template"
-	"log"
+	"log/slog"
 	"os"
 	"path"
 	"slices"
@@ -58,11 +58,11 @@ func Test{{ .Name }}Roms(t *testing.T) {
 }
 `))
 
-func eachRom(root string, cb func(romFile string)) {
+func eachRom(root string, cb func(romFile string)) error {
 	dir, err := os.ReadDir(root)
 
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	for _, entry := range dir {
@@ -74,12 +74,16 @@ func eachRom(root string, cb func(romFile string)) {
 				cb(fullPath)
 			}
 		} else {
-			eachRom(fullPath, cb)
+			if err := eachRom(fullPath, cb); err != nil {
+				return err
+			}
 		}
 	}
+
+	return nil
 }
 
-func getTestCaseTree(root string, serialCallbackFuncName string) *testCase {
+func getTestCaseTree(root string, serialCallbackFuncName string) (*testCase, error) {
 	var romPaths []string
 
 	t := &testCase{
@@ -88,9 +92,13 @@ func getTestCaseTree(root string, serialCallbackFuncName string) *testCase {
 		Children: []*testCase{},
 	}
 
-	eachRom(root, func(romFile string) {
+	err := eachRom(root, func(romFile string) {
 		romPaths = append(romPaths, romFile)
 	})
+
+	if err != nil {
+		return nil, err
+	}
 
 	slices.SortStableFunc(romPaths, func(a, b string) int {
 		return cmp.Compare(a, b)
@@ -136,7 +144,7 @@ func getTestCaseTree(root string, serialCallbackFuncName string) *testCase {
 		}
 	}
 
-	return t
+	return t, nil
 }
 
 var romCollections = []struct {
@@ -154,12 +162,18 @@ func main() {
 		f, err := os.Create(rc.OutFile)
 
 		if err != nil {
-			log.Fatal(err)
+			slog.Error(err.Error())
+			continue
 		}
 
 		defer f.Close()
 
-		tree := getTestCaseTree(rc.RomsRoot, rc.SerialCallbackFuncName)
+		tree, err := getTestCaseTree(rc.RomsRoot, rc.SerialCallbackFuncName)
+
+		if err != nil {
+			slog.Error(err.Error())
+			continue
+		}
 
 		err = testTemplate.Execute(f, struct {
 			Timestamp string
@@ -172,9 +186,10 @@ func main() {
 		})
 
 		if err != nil {
-			log.Fatal(err)
+			slog.Error(err.Error())
+			continue
 		}
 
-		log.Printf("generated tests %s roms", rc.Name)
+		slog.Info("generated tests for roms", "collectionName", rc.Name)
 	}
 }

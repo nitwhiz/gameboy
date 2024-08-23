@@ -10,7 +10,7 @@ import (
 	"github.com/nitwhiz/gameboy/pkg/mmu"
 	"github.com/nitwhiz/gameboy/pkg/quarz"
 	"github.com/nitwhiz/gameboy/pkg/stack"
-	"log"
+	"log/slog"
 	"sync"
 )
 
@@ -96,7 +96,7 @@ func (g *GameBoy) Update(ctx context.Context) {
 	defer g.mu.Unlock()
 
 	if g.MMU.Cartridge == nil {
-		log.Println("missing cartridge, update skipped")
+		slog.Warn("missing cartridge, update skipped")
 		return
 	}
 
