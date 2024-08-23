@@ -2,6 +2,7 @@ package cartridge
 
 import (
 	"github.com/nitwhiz/gameboy/pkg/bits"
+	"log/slog"
 	"slices"
 )
 
@@ -111,11 +112,15 @@ func (c *MBC1) WriteROM(address uint16, v byte) {
 			b = 1
 		}
 
-		c.Bank1 = (b << (8 - c.Bank1Width)) >> (8 - c.Bank1Width)
+		c.Bank1 = b & c.Bank1Mask
+
+		slog.Debug("bank switch", "bank1", c.Bank1)
 	case address < 0x6000:
 		// Bank2
 
 		c.Bank2 = v & 0b11
+
+		slog.Debug("bank switch", "bank2", c.Bank2)
 	case address < 0x8000:
 		// Banking Mode Select
 
