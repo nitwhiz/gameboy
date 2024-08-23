@@ -1,6 +1,50 @@
 package bits
 
-import "math"
+var bitMasks = map[byte]byte{
+	1:   0b1,
+	3:   0b11,
+	7:   0b111,
+	15:  0b1111,
+	31:  0b11111,
+	63:  0b111111,
+	127: 0b1111111,
+	255: 0b11111111,
+}
+
+func GetMaskByValue(v int) byte {
+	if v == 0 {
+		return 0
+	}
+
+	if v > 255 {
+		return 0b11111111
+	}
+
+	x := byte(2)
+
+	for v > 1 {
+		v /= 2
+		x *= 2
+	}
+
+	m, ok := bitMasks[x-1]
+
+	if !ok {
+		return 0
+	}
+
+	return m
+}
+
+func GetMaskByWidth(n byte) byte {
+	m := byte(0)
+
+	for i := range n {
+		m |= 1 << i
+	}
+
+	return m
+}
 
 // IsTACEnabled returns the status of bit 2 of addr.TAC
 func IsTACEnabled(tac byte) bool {
@@ -68,20 +112,4 @@ func IsJOYPSelectButtons(joyp byte) bool {
 
 func IsJOYPSelectDPad(joyp byte) bool {
 	return !Test(joyp, 4)
-}
-
-func GetCountIn(v int) int {
-	return int(math.Log2(float64(v))) + 1
-}
-
-func GetAllOnes(count int) byte {
-	v := byte(0)
-
-	if count > 0 {
-		for i := 0; i < count; i++ {
-			v |= 1 << i
-		}
-	}
-
-	return v
 }

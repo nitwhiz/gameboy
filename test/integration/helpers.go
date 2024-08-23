@@ -5,7 +5,7 @@ import (
 	"github.com/nitwhiz/gameboy/pkg/gb"
 	"github.com/nitwhiz/gameboy/pkg/inst"
 	"os"
-	"path"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -20,7 +20,7 @@ type romTestCase struct {
 	maxTicks int
 }
 
-type serialOutCallbackFunc func(testName string, b byte) (bool, bool)
+type serialOutCallbackFunc func(b byte) (bool, bool)
 
 func newRomTestCase(t *testing.T, romPath string, serialOutCallbacks []serialOutCallbackFunc, ctx context.Context) *romTestCase {
 	rom, err := os.ReadFile(romPath)
@@ -34,7 +34,7 @@ func newRomTestCase(t *testing.T, romPath string, serialOutCallbacks []serialOut
 	g, err := gb.New(
 		gb.WithSerialReceiver(func(b byte) {
 			for _, serialOutCallback := range serialOutCallbacks {
-				cont, ok := serialOutCallback(t.Name(), b)
+				cont, ok := serialOutCallback(b)
 
 				if !ok {
 					t.Fail()
@@ -80,39 +80,14 @@ func (r *romTestCase) runGameBoy() {
 	r.t.Errorf("game boy ran for at least %d ticks", r.maxTicks)
 }
 
-func testRomsRecursive(t *testing.T, root string, serialOutCallbacks []serialOutCallbackFunc) {
-	dir, err := os.ReadDir(root)
-
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	for _, entry := range dir {
-		name := entry.Name()
-		fullPath := path.Join(root, name)
-
-		if !entry.IsDir() {
-			if strings.HasSuffix(name, ".gb") {
-				t.Run(name, func(tt *testing.T) {
-					tt.Parallel()
-					runRomTest(tt, serialOutCallbacks, fullPath, context.Background())
-				})
-			}
-		} else {
-			t.Run(name, func(tt *testing.T) {
-				tt.Parallel()
-				testRomsRecursive(tt, fullPath, serialOutCallbacks)
-			})
-		}
-	}
-}
-
 func runRomTest(t *testing.T, serialOutCallbacks []serialOutCallbackFunc, romPath string, ctx context.Context) {
+	inst.InitHandlers()
+
 	var serialData []byte
 
 	callbacks := append(
 		serialOutCallbacks,
-		func(testName string, b byte) (bool, bool) {
+		func(b byte) (bool, bool) {
 			serialData = append(serialData, b)
 
 			return true, true
@@ -129,5 +104,44 @@ func runRomTest(t *testing.T, serialOutCallbacks []serialOutCallbackFunc, romPat
 		t.Log("(no serial data)")
 	} else {
 		t.Logf("serial data: %v", serialData)
+	}
+}
+
+func blarggSerialCallback() serialOutCallbackFunc {
+	var serialData []byte
+
+	return func(b byte) (bool, bool) {
+		serialData = append(serialData, b)
+
+		if strings.HasSuffix(string(serialData), "Passed") {
+			return false, true
+		}
+
+		if strings.HasSuffix(string(serialData), "Failed") {
+			return false, false
+		}
+
+		return true, true
+	}
+}
+
+func mooneyeSerialCallback() serialOutCallbackFunc {
+	var serialData []byte
+
+	successData := []byte{3, 5, 8, 13, 21, 34}
+	failData := []byte{66, 66, 66, 66, 66, 66}
+
+	return func(b byte) (bool, bool) {
+		serialData = append(serialData, b)
+
+		if reflect.DeepEqual(serialData, successData) {
+			return false, true
+		}
+
+		if reflect.DeepEqual(serialData, failData) {
+			return false, false
+		}
+
+		return true, true
 	}
 }

@@ -3,6 +3,7 @@ package inst
 import (
 	"github.com/nitwhiz/gameboy/pkg/gb"
 	"log"
+	"sync"
 )
 
 type handler func(g *gb.GameBoy) (ticks byte)
@@ -14,6 +15,9 @@ var h = &table{}
 
 // p - prefixed instruction handler table
 var p = &table{}
+
+var initalized = false
+var initLock = &sync.Mutex{}
 
 func (i *table) add(code byte, inst handler) {
 	if foundI := i[code]; foundI != nil {
@@ -40,6 +44,13 @@ func (i *table) executeNextOpcode(g *gb.GameBoy) (ticks byte) {
 }
 
 func InitHandlers() {
+	initLock.Lock()
+	defer initLock.Unlock()
+
+	if initalized {
+		return
+	}
+
 	addADDHandlers()
 	addADCHandlers()
 	addINCHandlers()
@@ -70,6 +81,8 @@ func InitHandlers() {
 	addBitInstructions()
 
 	initPHandlers()
+
+	initalized = true
 }
 
 // ExecuteNextOpcode executes the next opcode.
