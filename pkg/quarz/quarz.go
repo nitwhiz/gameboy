@@ -9,13 +9,18 @@ const (
 	FramesPerSecond = 60
 
 	CPUTicksPerFrame = CPUSpeed / FramesPerSecond
-
-	TimerTicksPerCPUTick = float64(TimerSpeed) / float64(CPUSpeed)
 )
 
-var TACClockTicksPerCPUTick = map[byte]float64{
-	0b00: 4096.0 / float64(CPUSpeed),
-	0b01: 262144.0 / float64(CPUSpeed),
-	0b10: 65536.0 / float64(CPUSpeed),
-	0b11: 16384.0 / float64(CPUSpeed),
+var TACClockSpeed = map[byte]float64{
+	0b00: 4096.0,
+	0b01: 262144.0,
+	0b10: 65536.0,
+	0b11: 16384.0,
+}
+
+var TACMask = map[byte]uint16{
+	0b00: 1 << 9,
+	0b01: 1 << 3,
+	0b10: 1 << 5,
+	0b11: 1 << 7,
 }

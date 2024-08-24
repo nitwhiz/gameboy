@@ -1,15 +1,18 @@
 // Do not edit. This is auto-generated.
-// Timestamp: 2024-08-23T15:05:22Z
+// Timestamp: 2024-08-24T13:48:06Z
 
 package integration
 
 import (
 	"context"
+	"log/slog"
 	"testing"
 )
 
 func TestBlarggRoms(t *testing.T) {
 	t.Parallel()
+
+	slog.SetLogLoggerLevel(slog.LevelDebug)
 
 	t.Run("cpu_instrs", func(t *testing.T) {
 		t.Parallel()

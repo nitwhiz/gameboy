@@ -6,6 +6,7 @@ import (
 	"github.com/nitwhiz/gameboy/pkg/cartridge"
 	"github.com/nitwhiz/gameboy/pkg/input"
 	"github.com/nitwhiz/gameboy/pkg/memory"
+	"github.com/nitwhiz/gameboy/pkg/quarz"
 )
 
 type Writer interface {
@@ -14,6 +15,7 @@ type Writer interface {
 type MMU struct {
 	Cartridge *cartridge.Cartridge
 	Memory    *memory.Memory
+	Timer     *quarz.Timer
 	Input     *input.State
 
 	SerialReceiver func(byte)
@@ -48,6 +50,8 @@ func (m *MMU) Read(address uint16) byte {
 
 func (m *MMU) readIO(address uint16) byte {
 	switch {
+	case address == addr.DIV:
+		return m.Timer.Div()
 	case address == addr.JOYP:
 		v := m.Memory.IO[address-addr.MemIOBegin] & 0xF0
 
@@ -99,7 +103,7 @@ func (m *MMU) writeIO(address uint16, v byte) {
 			}
 		}
 	case address == addr.DIV:
-		m.SetDIV(0)
+		m.Timer.Reset()
 	case address == addr.STAT:
 		m.Memory.IO[address-addr.MemIOBegin] = v | 0x80
 	case address == addr.LY:
@@ -109,10 +113,6 @@ func (m *MMU) writeIO(address uint16, v byte) {
 	default:
 		m.Memory.IO[address-addr.MemIOBegin] = v
 	}
-}
-
-func (m *MMU) SetDIV(v byte) {
-	m.Memory.IO[addr.DIV-addr.MemIOBegin] = v
 }
 
 func (m *MMU) IncLY() byte {

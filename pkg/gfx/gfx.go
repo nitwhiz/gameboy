@@ -5,7 +5,6 @@ import (
 	"github.com/nitwhiz/gameboy/pkg/bits"
 	"github.com/nitwhiz/gameboy/pkg/interrupt"
 	"github.com/nitwhiz/gameboy/pkg/mmu"
-	"github.com/nitwhiz/gameboy/pkg/quarz"
 	"github.com/nitwhiz/gameboy/pkg/screen"
 )
 
@@ -41,7 +40,7 @@ type GFX struct {
 	Interrupt *interrupt.Manager
 	Screen    *screen.Screen
 
-	Ticks *quarz.TickCounter[int]
+	Ticks int
 }
 
 func New(mmu *mmu.MMU, im *interrupt.Manager) *GFX {
@@ -49,20 +48,22 @@ func New(mmu *mmu.MMU, im *interrupt.Manager) *GFX {
 		MMU:       mmu,
 		Interrupt: im,
 		Screen:    screen.New(),
-		Ticks:     quarz.NewTickCounter[int](ScanlineDuration),
+		Ticks:     0,
 	}
 }
 
 func (g *GFX) Update(ticks int) {
 	lcdEnabled := g.updateLCDStatus()
+	g.Ticks += ticks
 
-	nextScanline := 0
+	nextScanline := false
 
-	if lcdEnabled {
-		nextScanline = g.Ticks.Increase(ticks)
+	if lcdEnabled && g.Ticks > ScanlineDuration {
+		nextScanline = true
+		g.Ticks -= ScanlineDuration
 	}
 
-	if nextScanline > 0 {
+	if nextScanline {
 		currentLine := g.MMU.IncLY()
 
 		if currentLine > ScanlineCount {
@@ -82,7 +83,7 @@ func (g *GFX) updateLCDStatus() bool {
 	stat := g.MMU.Read(addr.STAT)
 
 	if !bits.IsLCDEnabled(lcdc) {
-		g.Ticks.Reset()
+		g.Ticks = 0
 		g.MMU.SetLY(0)
 		g.MMU.Write(addr.STAT, bits.SetPPUMode(stat, byte(ModeVBlank)))
 
@@ -100,7 +101,7 @@ func (g *GFX) updateLCDStatus() bool {
 		stat = bits.SetPPUMode(stat, byte(ModeVBlank))
 		reqInterrupt = bits.IsLCDModeSelect(stat, byte(ModeVBlank))
 	} else {
-		currentTicks := g.Ticks.GetValue()
+		currentTicks := g.Ticks
 
 		if currentTicks >= TicksPassedBeforeOAMScan {
 			nextMode = ModeOAMScan

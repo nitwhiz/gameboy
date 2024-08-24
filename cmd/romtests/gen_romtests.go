@@ -49,11 +49,14 @@ package integration
 
 import (
 	"context"
+	"log/slog"
 	"testing"
 )
 
 func Test{{ .Name }}Roms(t *testing.T) {
 	t.Parallel()
+
+	slog.SetLogLoggerLevel(slog.LevelDebug)
 	{{ template "subtest" .Roms }}
 }
 `))

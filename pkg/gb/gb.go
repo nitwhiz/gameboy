@@ -20,15 +20,13 @@ type GameBoy struct {
 	CPU *cpu.CPU
 	MMU *mmu.MMU
 
+	Timer *quarz.Timer
 	Input *input.State
 
 	IM    *interrupt.Manager
 	Stack *stack.Stack
 
 	GFX *gfx.GFX
-
-	DIVTimerTicks  *quarz.TickCounter[float64]
-	TIMATimerTicks *quarz.TickCounter[float64]
 
 	ExecuteNextOpcodeFunc ExecuteNextOpcodeFunc
 
@@ -40,12 +38,14 @@ type GameBoy struct {
 func New(options ...GameBoyOption) (*GameBoy, error) {
 	c := cpu.New().Init()
 
+	t := quarz.NewTimer()
 	in := input.NewState()
 
 	m := mmu.MMU{
 		Cartridge:      nil,
 		Memory:         memory.New().Init(),
 		Input:          in,
+		Timer:          t,
 		SerialReceiver: nil,
 	}
 
@@ -63,15 +63,14 @@ func New(options ...GameBoyOption) (*GameBoy, error) {
 	g := gfx.New(&m, &i)
 
 	gameBoy := GameBoy{
-		CPU:            c,
-		MMU:            &m,
-		Input:          in,
-		Stack:          &s,
-		IM:             &i,
-		GFX:            g,
-		DIVTimerTicks:  quarz.NewTickCounter[float64](1),
-		TIMATimerTicks: quarz.NewTickCounter[float64](1),
-		mu:             &sync.Mutex{},
+		CPU:   c,
+		MMU:   &m,
+		Timer: t,
+		Input: in,
+		Stack: &s,
+		IM:    &i,
+		GFX:   g,
+		mu:    &sync.Mutex{},
 	}
 
 	for _, o := range options {
