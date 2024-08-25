@@ -9,7 +9,8 @@ type Memory struct {
 	IO [0x0080]byte
 
 	// IE - IM Enable
-	IE byte
+	IE           byte
+	TimerCounter uint16
 }
 
 func New() *Memory {

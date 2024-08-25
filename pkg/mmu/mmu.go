@@ -6,17 +6,15 @@ import (
 	"github.com/nitwhiz/gameboy/pkg/cartridge"
 	"github.com/nitwhiz/gameboy/pkg/input"
 	"github.com/nitwhiz/gameboy/pkg/memory"
-	"github.com/nitwhiz/gameboy/pkg/quarz"
 )
-
-type Writer interface {
-}
 
 type MMU struct {
 	Cartridge *cartridge.Cartridge
 	Memory    *memory.Memory
-	Timer     *quarz.Timer
 	Input     *input.State
+
+	TimerCounter uint16
+	TimerLock    bool
 
 	SerialReceiver func(byte)
 }
@@ -51,7 +49,7 @@ func (m *MMU) Read(address uint16) byte {
 func (m *MMU) readIO(address uint16) byte {
 	switch {
 	case address == addr.DIV:
-		return m.Timer.Div()
+		return byte((m.TimerCounter & 0xFF00) >> 8)
 	case address == addr.JOYP:
 		v := m.Memory.IO[address-addr.MemIOBegin] & 0xF0
 
@@ -103,16 +101,25 @@ func (m *MMU) writeIO(address uint16, v byte) {
 			}
 		}
 	case address == addr.DIV:
-		m.Timer.Reset()
+		m.ResetTimer()
 	case address == addr.STAT:
 		m.Memory.IO[address-addr.MemIOBegin] = v | 0x80
 	case address == addr.LY:
 		m.SetLY(0)
 	case address == addr.DMA:
 		m.dmaTransfer(v)
+	case address == addr.TIMA:
+		if m.TimerLock {
+			return
+		}
+		fallthrough
 	default:
 		m.Memory.IO[address-addr.MemIOBegin] = v
 	}
+}
+
+func (m *MMU) SetTIMA(tima byte) {
+	m.Memory.IO[addr.TIMA-addr.MemIOBegin] = tima
 }
 
 func (m *MMU) IncLY() byte {
@@ -137,4 +144,8 @@ func (m *MMU) dmaTransfer(v byte) {
 	for i := uint16(0); i < 0xA0; i++ {
 		m.Write(0xFE00+i, m.Read(address+i))
 	}
+}
+
+func (m *MMU) ResetTimer() {
+	m.TimerCounter = 0
 }

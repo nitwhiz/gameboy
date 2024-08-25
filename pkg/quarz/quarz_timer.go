@@ -1,75 +1,96 @@
 package quarz
 
 import (
+	"github.com/nitwhiz/gameboy/pkg/addr"
 	"github.com/nitwhiz/gameboy/pkg/bits"
+	"github.com/nitwhiz/gameboy/pkg/interrupt"
+	"github.com/nitwhiz/gameboy/pkg/mmu"
 	"log/slog"
 )
 
 type Timer struct {
-	LastTACEnabled bool
-
-	ForceTIMAIncrease    bool
+	LastTACEnabled       bool
 	TriggerOnFallingEdge bool
-
-	Counter uint16
+	LoadTMAIn            int
+	TriggerInterrupt     bool
+	MMU                  *mmu.MMU
+	IM                   *interrupt.Manager
 }
 
-func NewTimer() *Timer {
+func NewTimer(m *mmu.MMU, i *interrupt.Manager) *Timer {
 	return &Timer{
 		LastTACEnabled:       false,
-		ForceTIMAIncrease:    false,
 		TriggerOnFallingEdge: false,
-		Counter:              0xABCC,
+		LoadTMAIn:            -1,
+		TriggerInterrupt:     false,
+		MMU:                  m,
+		IM:                   i,
 	}
 }
 
-func (t *Timer) Update(ticks int, tac byte) int {
-	increaseTima := 0
+func (t *Timer) Tick(ticks int) {
+	tac := t.MMU.Read(addr.TAC)
+	tima := t.MMU.Read(addr.TIMA)
+	tma := t.MMU.Read(addr.TMA)
 
-	if t.ForceTIMAIncrease {
-		t.ForceTIMAIncrease = false
-		increaseTima++
+	nextTima := int(tima)
+
+	if t.MMU.TimerCounter == 0 && t.TriggerOnFallingEdge {
+		t.TriggerOnFallingEdge = false
+		nextTima++
+	}
+
+	if t.LoadTMAIn == -1 {
+		t.MMU.TimerLock = false
 	}
 
 	tacEnabled := bits.IsTACEnabled(tac)
 	clockSelect := bits.GetTACClockSelect(tac)
-	tacMask, ok := TACMask[bits.GetTACClockSelect(clockSelect)]
+	tacMask, ok := TACMask[clockSelect]
 
 	if !ok {
 		slog.Error("missing clock speed", "clockSelect", clockSelect)
 	}
 
-	for range ticks {
-		t.Counter++
+	if !tacEnabled && t.LastTACEnabled && t.MMU.TimerCounter&tacMask != 0 {
+		nextTima++
+	}
 
-		if !tacEnabled && t.LastTACEnabled && t.Counter&tacMask > 0 {
-			increaseTima++
+	for range ticks {
+		t.MMU.TimerCounter++
+
+		if t.LoadTMAIn > -1 {
+			t.LoadTMAIn--
+		}
+
+		if t.LoadTMAIn == 0 {
+			t.LoadTMAIn = -1
+			t.TriggerInterrupt = true
 		}
 
 		if tacEnabled {
-			if t.Counter&tacMask != 0 {
+			if t.MMU.TimerCounter&tacMask != 0 {
 				t.TriggerOnFallingEdge = true
 			} else if t.TriggerOnFallingEdge {
 				t.TriggerOnFallingEdge = false
-				increaseTima++
+				nextTima++
 			}
 		}
 	}
 
 	t.LastTACEnabled = tacEnabled
 
-	return increaseTima
-}
-
-func (t *Timer) Reset() {
-	t.Counter = 0
-
-	if t.TriggerOnFallingEdge {
-		t.TriggerOnFallingEdge = false
-		t.ForceTIMAIncrease = true
+	if nextTima > 0xFF {
+		t.MMU.TimerLock = true
+		t.LoadTMAIn = 4
+		nextTima = nextTima - 0x100
 	}
-}
 
-func (t *Timer) Div() byte {
-	return byte((t.Counter & 0xFF00) >> 8)
+	if t.TriggerInterrupt {
+		t.TriggerInterrupt = false
+		nextTima = int(tma)
+		t.IM.Request(interrupt.Timer)
+	}
+
+	t.MMU.SetTIMA(byte(nextTima))
 }

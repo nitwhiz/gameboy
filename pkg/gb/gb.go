@@ -38,14 +38,12 @@ type GameBoy struct {
 func New(options ...GameBoyOption) (*GameBoy, error) {
 	c := cpu.New().Init()
 
-	t := quarz.NewTimer()
 	in := input.NewState()
 
 	m := mmu.MMU{
 		Cartridge:      nil,
 		Memory:         memory.New().Init(),
 		Input:          in,
-		Timer:          t,
 		SerialReceiver: nil,
 	}
 
@@ -59,6 +57,8 @@ func New(options ...GameBoyOption) (*GameBoy, error) {
 		MMU:   &m,
 		Stack: &s,
 	}
+
+	t := quarz.NewTimer(&m, &i)
 
 	g := gfx.New(&m, &i)
 
@@ -125,7 +125,7 @@ func (g *GameBoy) Update(ctx context.Context) {
 			}
 		}
 
-		g.TickTimers(ticks)
+		g.Timer.Tick(ticks)
 		g.UpdateGFX(ticks)
 
 		executedTicks += ticks

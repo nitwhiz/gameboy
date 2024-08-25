@@ -169,7 +169,13 @@ func main() {
 			continue
 		}
 
-		defer f.Close()
+		defer func(f *os.File) {
+			err := f.Close()
+
+			if err != nil {
+				slog.Error(err.Error())
+			}
+		}(f)
 
 		tree, err := getTestCaseTree(rc.RomsRoot, rc.SerialCallbackFuncName)
 
