@@ -74,9 +74,8 @@ func (r *romTestCase) runGameBoy() {
 		case <-r.ctx.Done():
 			return
 		default:
+			r.gameBoy.Update(r.ctx)
 		}
-
-		r.gameBoy.Update(r.ctx)
 	}
 
 	r.t.Errorf("game boy ran for at least %d ticks", r.maxTicks)

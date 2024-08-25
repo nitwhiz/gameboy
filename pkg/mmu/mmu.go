@@ -38,29 +38,8 @@ func (m *MMU) Read(address uint16) byte {
 	switch {
 	case address == addr.IE:
 		return m.Memory.IE
-	case inRange(address, addr.MemROMBegin, addr.MemROMEnd):
-		return m.Cartridge.Read(address)
-	case inRange(address, addr.MemVRAMBegin, addr.MemVRAMEnd):
-		return m.Memory.VRAM[address-addr.MemVRAMBegin]
-	case inRange(address, addr.MemCartridgeRAMBegin, addr.MemCartridgeRAMEnd):
-		return m.Cartridge.Read(address)
-	case inRange(address, addr.MemWRAMBegin, addr.MemWRAMEnd):
-		return m.Memory.WRAM[address-addr.MemWRAMBegin]
-	case inRange(address, addr.MemOAMBegin, addr.MemOAMEnd):
-		return m.Memory.OAM[address-addr.MemOAMBegin]
-	case inRange(address, addr.MemIOBegin, addr.MemIOEnd):
-		return getUnusedBitsIO(address) | m.readIO(address)
-	case inRange(address, addr.MemHRAMBegin, addr.MemHRAMEnd):
-		return m.Memory.HRAM[address-addr.MemHRAMBegin]
-	default:
-		return 0xFF
-	}
-}
-
-func (m *MMU) readIO(address uint16) byte {
-	switch {
-	case isUnmappedIO(address):
-		return 0xFF
+	case address == addr.IF:
+		return getUnusedBitsIO(addr.IF) | m.Memory.IF
 	case address == addr.DIV:
 		return byte((m.TimerCounter & 0xFF00) >> 8)
 	case address == addr.JOYP:
@@ -73,13 +52,39 @@ func (m *MMU) readIO(address uint16) byte {
 		}
 
 		return v | 0x0F
+	case inRange(address, addr.MemROMBegin, addr.MemROMEnd):
+		return m.Cartridge.Read(address)
+	case inRange(address, addr.MemVRAMBegin, addr.MemVRAMEnd):
+		return m.Memory.VRAM[address-addr.MemVRAMBegin]
+	case inRange(address, addr.MemCartridgeRAMBegin, addr.MemCartridgeRAMEnd):
+		return m.Cartridge.Read(address)
+	case inRange(address, addr.MemWRAMBegin, addr.MemWRAMEnd):
+		return m.Memory.WRAM[address-addr.MemWRAMBegin]
+	case inRange(address, addr.MemOAMBegin, addr.MemOAMEnd):
+		return m.Memory.OAM[address-addr.MemOAMBegin]
+	case inRange(address, addr.MemIOBegin, addr.MemIOEnd):
+		return getUnusedBitsIO(address) | m.Memory.IO[address-addr.MemIOBegin]
+	case inRange(address, addr.MemHRAMBegin, addr.MemHRAMEnd):
+		return m.Memory.HRAM[address-addr.MemHRAMBegin]
 	default:
-		return m.Memory.IO[address-addr.MemIOBegin]
+		return 0xFF
 	}
 }
 
 func (m *MMU) Write(address uint16, v byte) {
 	switch {
+	case address == addr.IE:
+		m.Memory.IE = v
+	case address == addr.IF:
+		m.Memory.IF = v & ^getUnusedBitsIO(addr.IF)
+	case address == addr.DIV:
+		m.ResetTimer()
+	case inRange(address, addr.MemAudioBegin, addr.MemAudioEnd):
+		// not implemented
+		return
+	case inRange(address, addr.MemWaveBegin, addr.MemWaveEnd):
+		// not implemented
+		return
 	case inRange(address, addr.MemROMBegin, addr.MemROMEnd):
 		m.Cartridge.WriteROM(address, v)
 	case inRange(address, addr.MemVRAMBegin, addr.MemVRAMEnd):
@@ -91,20 +96,20 @@ func (m *MMU) Write(address uint16, v byte) {
 	case inRange(address, addr.MemOAMBegin, addr.MemOAMEnd):
 		m.Memory.OAM[address-addr.MemOAMBegin] = v
 	case inRange(address, addr.MemIOBegin, addr.MemIOEnd):
-		m.writeIO(address, v & ^getUnusedBitsIO(address))
+		m.writeIO(address, v)
 	case inRange(address, addr.MemHRAMBegin, addr.MemHRAMEnd):
 		m.Memory.HRAM[address-addr.MemHRAMBegin] = v
-	case address == addr.IE:
-		m.Memory.IE = v
 	}
 }
 
 func (m *MMU) writeIO(address uint16, v byte) {
+	if isUnmappedIO(address) {
+		return
+	}
+
+	v &= ^getUnusedBitsIO(address)
+
 	switch {
-	case inRange(address, addr.MemAudioBegin, addr.MemAudioEnd):
-		// not implemented
-	case inRange(address, addr.MemWaveBegin, addr.MemWaveEnd):
-		// not implemented
 	case address == addr.JOYP:
 		m.Memory.IO[address-addr.MemIOBegin] = v & 0b00110000
 	case address == addr.SC:
@@ -113,8 +118,6 @@ func (m *MMU) writeIO(address uint16, v byte) {
 				m.SerialReceiver(m.Read(addr.SB))
 			}
 		}
-	case address == addr.DIV:
-		m.ResetTimer()
 	case address == addr.STAT:
 		m.Memory.IO[address-addr.MemIOBegin] = v
 	case address == addr.LY:
@@ -131,6 +134,7 @@ func (m *MMU) writeIO(address uint16, v byte) {
 	}
 }
 
+// SetTIMA does not respect the timer lock
 func (m *MMU) SetTIMA(tima byte) {
 	m.Memory.IO[addr.TIMA-addr.MemIOBegin] = tima
 }

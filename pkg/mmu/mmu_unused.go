@@ -3,7 +3,15 @@ package mmu
 import "github.com/nitwhiz/gameboy/pkg/addr"
 
 func isUnmappedIO(address uint16) bool {
-	if address == 0xFF03 ||
+	if address < 0xFF03 || address > 0xFF7F {
+		return false
+	}
+
+	if address >= 0xFF4C {
+		return true
+	}
+
+	return address == 0xFF03 ||
 		address == 0xFF08 ||
 		address == 0xFF09 ||
 		address == 0xFF0A ||
@@ -15,12 +23,7 @@ func isUnmappedIO(address uint16) bool {
 		address == 0xFF1F ||
 		address == 0xFF27 ||
 		address == 0xFF28 ||
-		address == 0xFF29 ||
-		(address >= 0xFF4C && address <= 0xFF7F) {
-		return true
-	}
-
-	return false
+		address == 0xFF29
 }
 
 func getUnusedBitsIO(address uint16) byte {

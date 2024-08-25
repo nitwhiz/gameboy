@@ -8,8 +8,11 @@ type Memory struct {
 
 	IO [0x0080]byte
 
-	// IE - IM Enable
-	IE           byte
+	// IE - Interrupt Enable
+	IE byte
+	// IF - Interrupt Flags
+	IF byte
+
 	TimerCounter uint16
 }
 
@@ -29,6 +32,10 @@ func New() *Memory {
 }
 
 func (m *Memory) Init() *Memory {
+	for i := range len(m.IO) {
+		m.IO[i] = 0xFF
+	}
+
 	m.HRAM[0x00] = 0xCF
 	m.HRAM[0x01] = 0x00
 	m.HRAM[0x02] = 0x7E

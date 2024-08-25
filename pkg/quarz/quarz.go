@@ -20,6 +20,6 @@ func GetTACMask(tacClockSelect byte) uint16 {
 	case 0b11:
 		return 1 << 7
 	default:
-		return 0
+		panic("missing tac mask")
 	}
 }

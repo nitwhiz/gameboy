@@ -18,12 +18,21 @@ const (
 	Joypad = Type(4)
 )
 
-var isrTable = map[Type]uint16{
-	VBlank: addr.ISRVBlank,
-	LCD:    addr.ISRLCD,
-	Timer:  addr.ISRTimer,
-	Serial: addr.ISRSerial,
-	Joypad: addr.ISRJoypad,
+func GetISR(i Type) uint16 {
+	switch i {
+	case VBlank:
+		return addr.ISRVBlank
+	case LCD:
+		return addr.ISRLCD
+	case Timer:
+		return addr.ISRTimer
+	case Serial:
+		return addr.ISRSerial
+	case Joypad:
+		return addr.ISRJoypad
+	default:
+		panic("missing interrupt type")
+	}
 }
 
 type Manager struct {
@@ -58,7 +67,7 @@ func (m *Manager) Service() (ticks int) {
 				m.MMU.Write(addr.IF, requested)
 
 				m.Stack.Push(m.CPU.PC.Val())
-				m.CPU.PC.Set(isrTable[t])
+				m.CPU.PC.Set(GetISR(t))
 
 				return 20
 			}
