@@ -1,5 +1,5 @@
 // Do not edit. This is auto-generated.
-// Timestamp: 2024-08-24T13:48:06Z
+// Timestamp: 2024-08-25T14:51:36Z
 
 package integration
 
@@ -10,6 +10,7 @@ import (
 )
 
 func TestMooneyeRoms(t *testing.T) {
+	cleanupOutputs(t)
 	t.Parallel()
 
 	slog.SetLogLoggerLevel(slog.LevelDebug)
@@ -54,52 +55,20 @@ func TestMooneyeRoms(t *testing.T) {
 
 		})
 
-		t.Run("boot_div-S", func(t *testing.T) {
+		t.Run("boot_div-dmgABCmgb", func(t *testing.T) {
 			t.Parallel()
 
 			runRomTest(t, []serialOutCallbackFunc{
 				mooneyeSerialCallback(),
-			}, "../../testdata/roms/mooneye/acceptance/boot_div-S.gb", context.Background())
+			}, "../../testdata/roms/mooneye/acceptance/boot_div-dmgABCmgb.gb", context.Background())
 		})
 
-		t.Run("boot_div-dmg0", func(t *testing.T) {
+		t.Run("boot_hwio-dmgABCmgb", func(t *testing.T) {
 			t.Parallel()
 
 			runRomTest(t, []serialOutCallbackFunc{
 				mooneyeSerialCallback(),
-			}, "../../testdata/roms/mooneye/acceptance/boot_div-dmg0.gb", context.Background())
-		})
-
-		t.Run("boot_div2-S", func(t *testing.T) {
-			t.Parallel()
-
-			runRomTest(t, []serialOutCallbackFunc{
-				mooneyeSerialCallback(),
-			}, "../../testdata/roms/mooneye/acceptance/boot_div2-S.gb", context.Background())
-		})
-
-		t.Run("boot_hwio-S", func(t *testing.T) {
-			t.Parallel()
-
-			runRomTest(t, []serialOutCallbackFunc{
-				mooneyeSerialCallback(),
-			}, "../../testdata/roms/mooneye/acceptance/boot_hwio-S.gb", context.Background())
-		})
-
-		t.Run("boot_hwio-dmg0", func(t *testing.T) {
-			t.Parallel()
-
-			runRomTest(t, []serialOutCallbackFunc{
-				mooneyeSerialCallback(),
-			}, "../../testdata/roms/mooneye/acceptance/boot_hwio-dmg0.gb", context.Background())
-		})
-
-		t.Run("boot_regs-dmg0", func(t *testing.T) {
-			t.Parallel()
-
-			runRomTest(t, []serialOutCallbackFunc{
-				mooneyeSerialCallback(),
-			}, "../../testdata/roms/mooneye/acceptance/boot_regs-dmg0.gb", context.Background())
+			}, "../../testdata/roms/mooneye/acceptance/boot_hwio-dmgABCmgb.gb", context.Background())
 		})
 
 		t.Run("boot_regs-dmgABC", func(t *testing.T) {
@@ -490,6 +459,19 @@ func TestMooneyeRoms(t *testing.T) {
 			}, "../../testdata/roms/mooneye/acceptance/rst_timing.gb", context.Background())
 		})
 
+		t.Run("serial", func(t *testing.T) {
+			t.Parallel()
+
+			t.Run("boot_sclk_align-dmgABCmgb", func(t *testing.T) {
+				t.Parallel()
+
+				runRomTest(t, []serialOutCallbackFunc{
+					mooneyeSerialCallback(),
+				}, "../../testdata/roms/mooneye/acceptance/serial/boot_sclk_align-dmgABCmgb.gb", context.Background())
+			})
+
+		})
+
 		t.Run("timer", func(t *testing.T) {
 			t.Parallel()
 
@@ -845,6 +827,19 @@ func TestMooneyeRoms(t *testing.T) {
 
 	})
 
+	t.Run("madness", func(t *testing.T) {
+		t.Parallel()
+
+		t.Run("mgb_oam_dma_halt_sprites", func(t *testing.T) {
+			t.Parallel()
+
+			runRomTest(t, []serialOutCallbackFunc{
+				mooneyeSerialCallback(),
+			}, "../../testdata/roms/mooneye/madness/mgb_oam_dma_halt_sprites.gb", context.Background())
+		})
+
+	})
+
 	t.Run("manual-only", func(t *testing.T) {
 		t.Parallel()
 
@@ -854,61 +849,6 @@ func TestMooneyeRoms(t *testing.T) {
 			runRomTest(t, []serialOutCallbackFunc{
 				mooneyeSerialCallback(),
 			}, "../../testdata/roms/mooneye/manual-only/sprite_priority.gb", context.Background())
-		})
-
-	})
-
-	t.Run("misc", func(t *testing.T) {
-		t.Parallel()
-
-		t.Run("bits", func(t *testing.T) {
-			t.Parallel()
-
-			t.Run("unused_hwio-C", func(t *testing.T) {
-				t.Parallel()
-
-				runRomTest(t, []serialOutCallbackFunc{
-					mooneyeSerialCallback(),
-				}, "../../testdata/roms/mooneye/misc/bits/unused_hwio-C.gb", context.Background())
-			})
-
-		})
-
-		t.Run("boot_div-A", func(t *testing.T) {
-			t.Parallel()
-
-			runRomTest(t, []serialOutCallbackFunc{
-				mooneyeSerialCallback(),
-			}, "../../testdata/roms/mooneye/misc/boot_div-A.gb", context.Background())
-		})
-
-		t.Run("boot_hwio-C", func(t *testing.T) {
-			t.Parallel()
-
-			runRomTest(t, []serialOutCallbackFunc{
-				mooneyeSerialCallback(),
-			}, "../../testdata/roms/mooneye/misc/boot_hwio-C.gb", context.Background())
-		})
-
-		t.Run("boot_regs-A", func(t *testing.T) {
-			t.Parallel()
-
-			runRomTest(t, []serialOutCallbackFunc{
-				mooneyeSerialCallback(),
-			}, "../../testdata/roms/mooneye/misc/boot_regs-A.gb", context.Background())
-		})
-
-		t.Run("ppu", func(t *testing.T) {
-			t.Parallel()
-
-			t.Run("vblank_stat_intr-C", func(t *testing.T) {
-				t.Parallel()
-
-				runRomTest(t, []serialOutCallbackFunc{
-					mooneyeSerialCallback(),
-				}, "../../testdata/roms/mooneye/misc/ppu/vblank_stat_intr-C.gb", context.Background())
-			})
-
 		})
 
 	})

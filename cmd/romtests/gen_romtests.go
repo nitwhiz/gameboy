@@ -54,6 +54,7 @@ import (
 )
 
 func Test{{ .Name }}Roms(t *testing.T) {
+	cleanupOutputs(t)
 	t.Parallel()
 
 	slog.SetLogLoggerLevel(slog.LevelDebug)

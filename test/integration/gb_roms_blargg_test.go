@@ -1,5 +1,5 @@
 // Do not edit. This is auto-generated.
-// Timestamp: 2024-08-24T13:48:06Z
+// Timestamp: 2024-08-25T14:51:36Z
 
 package integration
 
@@ -10,6 +10,7 @@ import (
 )
 
 func TestBlarggRoms(t *testing.T) {
+	cleanupOutputs(t)
 	t.Parallel()
 
 	slog.SetLogLoggerLevel(slog.LevelDebug)

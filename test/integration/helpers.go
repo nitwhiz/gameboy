@@ -4,7 +4,9 @@ import (
 	"context"
 	"github.com/nitwhiz/gameboy/pkg/gb"
 	"github.com/nitwhiz/gameboy/pkg/inst"
+	"image/png"
 	"os"
+	"path"
 	"reflect"
 	"strings"
 	"testing"
@@ -80,6 +82,12 @@ func (r *romTestCase) runGameBoy() {
 	r.t.Errorf("game boy ran for at least %d ticks", r.maxTicks)
 }
 
+func cleanupOutputs(t *testing.T) {
+	if err := os.RemoveAll(path.Join("../../testdata/output", t.Name())); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func runRomTest(t *testing.T, serialOutCallbacks []serialOutCallbackFunc, romPath string, ctx context.Context) {
 	inst.InitHandlers()
 
@@ -104,6 +112,32 @@ func runRomTest(t *testing.T, serialOutCallbacks []serialOutCallbackFunc, romPat
 		t.Log("(no serial data)")
 	} else {
 		t.Logf("serial data: %v", serialData)
+	}
+
+	if t.Failed() {
+		name := t.Name()
+
+		if err := os.MkdirAll(path.Join("../../testdata/output", path.Dir(name)), 0775); err != nil {
+			panic(err)
+		}
+
+		f, err := os.Create(path.Join("../../testdata/output", name+".png"))
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		defer func(f *os.File) {
+			err := f.Close()
+
+			if err != nil {
+				t.Fatal(err)
+			}
+		}(f)
+
+		if err := png.Encode(f, r.gameBoy.GFX.Screen); err != nil {
+			t.Fatal(err)
+		}
 	}
 }
 
