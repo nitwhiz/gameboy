@@ -5,7 +5,6 @@ import (
 	"github.com/nitwhiz/gameboy/pkg/bits"
 	"github.com/nitwhiz/gameboy/pkg/interrupt"
 	"github.com/nitwhiz/gameboy/pkg/mmu"
-	"log/slog"
 )
 
 type Timer struct {
@@ -46,11 +45,7 @@ func (t *Timer) Tick(ticks int) {
 
 	tacEnabled := bits.IsTACEnabled(tac)
 	clockSelect := bits.GetTACClockSelect(tac)
-	tacMask, ok := TACMask[clockSelect]
-
-	if !ok {
-		slog.Error("missing clock speed", "clockSelect", clockSelect)
-	}
+	tacMask := GetTACMask(clockSelect)
 
 	if !tacEnabled && t.LastTACEnabled && t.MMU.TimerCounter&tacMask != 0 {
 		nextTima++

@@ -49,13 +49,7 @@ func (m *MMU) Read(address uint16) byte {
 	case inRange(address, addr.MemOAMBegin, addr.MemOAMEnd):
 		return m.Memory.OAM[address-addr.MemOAMBegin]
 	case inRange(address, addr.MemIOBegin, addr.MemIOEnd):
-		u, ok := unusedBitsIO[address]
-
-		if ok {
-			return u | m.readIO(address)
-		}
-
-		return m.readIO(address)
+		return getUnusedBitsIO(address) | m.readIO(address)
 	case inRange(address, addr.MemHRAMBegin, addr.MemHRAMEnd):
 		return m.Memory.HRAM[address-addr.MemHRAMBegin]
 	default:
@@ -97,13 +91,7 @@ func (m *MMU) Write(address uint16, v byte) {
 	case inRange(address, addr.MemOAMBegin, addr.MemOAMEnd):
 		m.Memory.OAM[address-addr.MemOAMBegin] = v
 	case inRange(address, addr.MemIOBegin, addr.MemIOEnd):
-		u, ok := unusedBitsIO[address]
-
-		if ok {
-			m.writeIO(address, v & ^u)
-		} else {
-			m.writeIO(address, v)
-		}
+		m.writeIO(address, v & ^getUnusedBitsIO(address))
 	case inRange(address, addr.MemHRAMBegin, addr.MemHRAMEnd):
 		m.Memory.HRAM[address-addr.MemHRAMBegin] = v
 	case address == addr.IE:

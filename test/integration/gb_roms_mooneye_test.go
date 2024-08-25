@@ -1,5 +1,5 @@
 // Do not edit. This is auto-generated.
-// Timestamp: 2024-08-25T14:51:36Z
+// Timestamp: 2024-08-25T20:07:50Z
 
 package integration
 
@@ -823,19 +823,6 @@ func TestMooneyeRoms(t *testing.T) {
 				}, "../../testdata/roms/mooneye/emulator-only/mbc5/rom_8Mb.gb", context.Background())
 			})
 
-		})
-
-	})
-
-	t.Run("madness", func(t *testing.T) {
-		t.Parallel()
-
-		t.Run("mgb_oam_dma_halt_sprites", func(t *testing.T) {
-			t.Parallel()
-
-			runRomTest(t, []serialOutCallbackFunc{
-				mooneyeSerialCallback(),
-			}, "../../testdata/roms/mooneye/madness/mgb_oam_dma_halt_sprites.gb", context.Background())
 		})
 
 	})

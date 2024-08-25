@@ -9,9 +9,17 @@ const (
 	CPUTicksPerFrame = CPUSpeed / FramesPerSecond
 )
 
-var TACMask = map[byte]uint16{
-	0b00: 1 << 9,
-	0b01: 1 << 3,
-	0b10: 1 << 5,
-	0b11: 1 << 7,
+func GetTACMask(tacClockSelect byte) uint16 {
+	switch tacClockSelect {
+	case 0b00:
+		return 1 << 9
+	case 0b01:
+		return 1 << 3
+	case 0b10:
+		return 1 << 5
+	case 0b11:
+		return 1 << 7
+	default:
+		return 0
+	}
 }
