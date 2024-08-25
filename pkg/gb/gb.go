@@ -6,7 +6,6 @@ import (
 	"github.com/nitwhiz/gameboy/pkg/gfx"
 	"github.com/nitwhiz/gameboy/pkg/input"
 	"github.com/nitwhiz/gameboy/pkg/interrupt"
-	"github.com/nitwhiz/gameboy/pkg/memory"
 	"github.com/nitwhiz/gameboy/pkg/mmu"
 	"github.com/nitwhiz/gameboy/pkg/quarz"
 	"github.com/nitwhiz/gameboy/pkg/stack"
@@ -40,31 +39,26 @@ func New(options ...GameBoyOption) (*GameBoy, error) {
 
 	in := input.NewState()
 
-	m := mmu.MMU{
-		Cartridge:      nil,
-		Memory:         memory.New().Init(),
-		Input:          in,
-		SerialReceiver: nil,
-	}
+	m := mmu.New(in)
 
 	s := stack.Stack{
 		CPU: c,
-		MMU: &m,
+		MMU: m,
 	}
 
 	i := interrupt.Manager{
 		CPU:   c,
-		MMU:   &m,
+		MMU:   m,
 		Stack: &s,
 	}
 
-	t := quarz.NewTimer(&m, &i)
+	t := quarz.NewTimer(m, &i)
 
-	g := gfx.New(&m, &i)
+	g := gfx.New(m, &i)
 
 	gameBoy := GameBoy{
 		CPU:   c,
-		MMU:   &m,
+		MMU:   m,
 		Timer: t,
 		Input: in,
 		Stack: &s,
@@ -126,7 +120,7 @@ func (g *GameBoy) Update(ctx context.Context) {
 		}
 
 		g.Timer.Tick(ticks)
-		g.UpdateGFX(ticks)
+		g.GFX.Update(ticks)
 
 		executedTicks += ticks
 	}

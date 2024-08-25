@@ -60,7 +60,8 @@ func (g *GFX) Update(ticks int) {
 
 	if lcdEnabled && g.Ticks > ScanlineDuration {
 		nextScanline = true
-		g.Ticks -= ScanlineDuration
+		// todo: is this correct?
+		g.Ticks = 0
 	}
 
 	if nextScanline {
@@ -115,6 +116,7 @@ func (g *GFX) updateLCDStatus() bool {
 				g.renderScanline(ly)
 			}
 		} else {
+			// todo: this might be too early
 			nextMode = ModeHBlank
 			stat = bits.SetPPUMode(stat, byte(ModeHBlank))
 			reqInterrupt = bits.IsLCDModeSelect(stat, byte(ModeHBlank))

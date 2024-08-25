@@ -19,6 +19,17 @@ type MMU struct {
 	SerialReceiver func(byte)
 }
 
+func New(in *input.State) *MMU {
+	return &MMU{
+		Cartridge:      nil,
+		Memory:         memory.New().Init(),
+		Input:          in,
+		TimerCounter:   0xAC00,
+		TimerLock:      false,
+		SerialReceiver: nil,
+	}
+}
+
 func inRange(a, l, u uint16) bool {
 	return a >= l && a <= u
 }
@@ -38,6 +49,12 @@ func (m *MMU) Read(address uint16) byte {
 	case inRange(address, addr.MemOAMBegin, addr.MemOAMEnd):
 		return m.Memory.OAM[address-addr.MemOAMBegin]
 	case inRange(address, addr.MemIOBegin, addr.MemIOEnd):
+		u, ok := unusedBitsIO[address]
+
+		if ok {
+			return u | m.readIO(address)
+		}
+
 		return m.readIO(address)
 	case inRange(address, addr.MemHRAMBegin, addr.MemHRAMEnd):
 		return m.Memory.HRAM[address-addr.MemHRAMBegin]
@@ -48,6 +65,8 @@ func (m *MMU) Read(address uint16) byte {
 
 func (m *MMU) readIO(address uint16) byte {
 	switch {
+	case isUnmappedIO(address):
+		return 0xFF
 	case address == addr.DIV:
 		return byte((m.TimerCounter & 0xFF00) >> 8)
 	case address == addr.JOYP:
@@ -78,7 +97,13 @@ func (m *MMU) Write(address uint16, v byte) {
 	case inRange(address, addr.MemOAMBegin, addr.MemOAMEnd):
 		m.Memory.OAM[address-addr.MemOAMBegin] = v
 	case inRange(address, addr.MemIOBegin, addr.MemIOEnd):
-		m.writeIO(address, v)
+		u, ok := unusedBitsIO[address]
+
+		if ok {
+			m.writeIO(address, v & ^u)
+		} else {
+			m.writeIO(address, v)
+		}
 	case inRange(address, addr.MemHRAMBegin, addr.MemHRAMEnd):
 		m.Memory.HRAM[address-addr.MemHRAMBegin] = v
 	case address == addr.IE:
@@ -103,7 +128,7 @@ func (m *MMU) writeIO(address uint16, v byte) {
 	case address == addr.DIV:
 		m.ResetTimer()
 	case address == addr.STAT:
-		m.Memory.IO[address-addr.MemIOBegin] = v | 0x80
+		m.Memory.IO[address-addr.MemIOBegin] = v
 	case address == addr.LY:
 		m.SetLY(0)
 	case address == addr.DMA:
@@ -132,10 +157,6 @@ func (m *MMU) IncLY() byte {
 
 func (m *MMU) SetLY(v byte) {
 	m.Memory.IO[addr.LY-addr.MemIOBegin] = v
-}
-
-func (m *MMU) SetJOYP(v byte) {
-	m.Memory.IO[addr.JOYP-addr.MemIOBegin] = v
 }
 
 func (m *MMU) dmaTransfer(v byte) {
