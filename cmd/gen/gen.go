@@ -11,6 +11,31 @@ import (
 	"time"
 )
 
+func eachRom(root string, cb func(romFile string)) error {
+	dir, err := os.ReadDir(root)
+
+	if err != nil {
+		return err
+	}
+
+	for _, entry := range dir {
+		name := entry.Name()
+		fullPath := path.Join(root, name)
+
+		if !entry.IsDir() {
+			if strings.HasSuffix(name, ".gb") {
+				cb(fullPath)
+			}
+		} else {
+			if err := eachRom(fullPath, cb); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
 type testCase struct {
 	FullPath               string
 	Name                   string
@@ -62,30 +87,43 @@ func Test{{ .Name }}Roms(t *testing.T) {
 }
 `))
 
-func eachRom(root string, cb func(romFile string)) error {
-	dir, err := os.ReadDir(root)
+var benchTemplate = template.Must(template.New("benchRoms").
+	Parse(`
+{{- define "child_tests" }}
+{{- range .Children -}}
+	{{ template "subtest" . }}
+{{- end -}}
+{{ end -}}
+{{- define "subtest" }}
+	{{ if .Name }}
+	b.Run("{{ .Name }}", func(b *testing.B) {
+		{{- if .FullPath -}}
+		runRomBenchmark(b, []serialOutCallbackCreator{
+			{{ .SerialCallbackFuncName }},
+		}, "{{ .FullPath }}", context.Background())
+		{{ end -}}
 
-	if err != nil {
-		return err
-	}
+		{{- template "child_tests" . -}}
+	})
+	{{ else }}
+	{{ template "child_tests" . }}
+	{{ end }}
+{{ end -}}
 
-	for _, entry := range dir {
-		name := entry.Name()
-		fullPath := path.Join(root, name)
+// Do not edit. This is auto-generated.
+// Timestamp: {{ .Timestamp }}
 
-		if !entry.IsDir() {
-			if strings.HasSuffix(name, ".gb") {
-				cb(fullPath)
-			}
-		} else {
-			if err := eachRom(fullPath, cb); err != nil {
-				return err
-			}
-		}
-	}
+package integration
 
-	return nil
+import (
+	"context"
+	"testing"
+)
+
+func Benchmark{{ .Name }}Roms(b *testing.B) {
+	{{ template "subtest" .Roms }}
 }
+`))
 
 func getTestCaseTree(root string, serialCallbackFuncName string) (*testCase, error) {
 	var romPaths []string
@@ -151,7 +189,7 @@ func getTestCaseTree(root string, serialCallbackFuncName string) (*testCase, err
 	return t, nil
 }
 
-var romCollections = []struct {
+var romTestCollections = []struct {
 	Name                   string
 	RomsRoot               string
 	SerialCallbackFuncName string
@@ -161,8 +199,18 @@ var romCollections = []struct {
 	{"Mooneye", "../../testdata/roms/mooneye/", "mooneyeSerialCallback", "gb_roms_mooneye_test.go"},
 }
 
+var romBenchCollections = []struct {
+	Name                   string
+	RomsRoot               string
+	SerialCallbackFuncName string
+	OutFile                string
+}{
+	{"BlarggCpuInstrs", "../../testdata/roms/blargg/cpu_instrs", "blarggSerialCallback", "gb_roms_blargg_bench_test.go"},
+	{"MooneyeMBC1", "../../testdata/roms/mooneye/emulator-only/mbc1", "mooneyeSerialCallback", "gb_roms_mooneye_bench_test.go"},
+}
+
 func main() {
-	for _, rc := range romCollections {
+	for _, rc := range romTestCollections {
 		f, err := os.Create(rc.OutFile)
 
 		if err != nil {
@@ -201,5 +249,46 @@ func main() {
 		}
 
 		slog.Info("generated tests for roms", "collectionName", rc.Name)
+	}
+
+	for _, rc := range romBenchCollections {
+		f, err := os.Create(rc.OutFile)
+
+		if err != nil {
+			slog.Error(err.Error())
+			continue
+		}
+
+		defer func(f *os.File) {
+			err := f.Close()
+
+			if err != nil {
+				slog.Error(err.Error())
+			}
+		}(f)
+
+		tree, err := getTestCaseTree(rc.RomsRoot, rc.SerialCallbackFuncName)
+
+		if err != nil {
+			slog.Error(err.Error())
+			continue
+		}
+
+		err = benchTemplate.Execute(f, struct {
+			Timestamp string
+			Roms      *testCase
+			Name      string
+		}{
+			Timestamp: time.Now().UTC().Format(time.RFC3339),
+			Roms:      tree,
+			Name:      rc.Name,
+		})
+
+		if err != nil {
+			slog.Error(err.Error())
+			continue
+		}
+
+		slog.Info("generated benchmarks for roms", "collectionName", rc.Name)
 	}
 }

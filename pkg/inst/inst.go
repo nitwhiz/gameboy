@@ -17,7 +17,7 @@ var h = &table{}
 // p - prefixed instruction handler table
 var p = &table{}
 
-var initalized = false
+var initialized = false
 var initLock = &sync.Mutex{}
 
 func (i *table) add(code byte, inst handler) {
@@ -48,7 +48,7 @@ func InitHandlers() {
 	initLock.Lock()
 	defer initLock.Unlock()
 
-	if initalized {
+	if initialized {
 		return
 	}
 
@@ -83,7 +83,7 @@ func InitHandlers() {
 
 	initPHandlers()
 
-	initalized = true
+	initialized = true
 }
 
 // ExecuteNextOpcode executes the next opcode.

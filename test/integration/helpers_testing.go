@@ -7,22 +7,21 @@ import (
 	"image/png"
 	"os"
 	"path"
-	"reflect"
-	"strings"
 	"testing"
 )
 
-const defaultMaxTicks = 5000
+const defaultMaxFrames = 5000
 
 type romTestCase struct {
-	t        *testing.T
-	gameBoy  *gb.GameBoy
-	ctx      context.Context
-	cancel   context.CancelFunc
-	maxTicks int
+	t         *testing.T
+	gameBoy   *gb.GameBoy
+	ctx       context.Context
+	cancel    context.CancelFunc
+	maxFrames int
 }
 
 type serialOutCallbackFunc func(b byte) (bool, bool)
+type serialOutCallbackCreator func() serialOutCallbackFunc
 
 func newRomTestCase(t *testing.T, romPath string, serialOutCallbacks []serialOutCallbackFunc, ctx context.Context) *romTestCase {
 	rom, err := os.ReadFile(romPath)
@@ -58,18 +57,18 @@ func newRomTestCase(t *testing.T, romPath string, serialOutCallbacks []serialOut
 	}
 
 	return &romTestCase{
-		t:        t,
-		gameBoy:  g,
-		ctx:      ctx,
-		cancel:   cancel,
-		maxTicks: defaultMaxTicks,
+		t:         t,
+		gameBoy:   g,
+		ctx:       ctx,
+		cancel:    cancel,
+		maxFrames: defaultMaxFrames,
 	}
 }
 
 func (r *romTestCase) runGameBoy() {
-	ticks := r.maxTicks
+	frames := r.maxFrames
 
-	for ; ticks > 0; ticks-- {
+	for ; frames > 0; frames-- {
 		select {
 		case <-r.ctx.Done():
 			return
@@ -78,7 +77,7 @@ func (r *romTestCase) runGameBoy() {
 		}
 	}
 
-	r.t.Errorf("game boy ran for at least %d ticks", r.maxTicks)
+	r.t.Errorf("game boy ran for at least %d frames", r.maxFrames)
 }
 
 func cleanupOutputs(t *testing.T) {
@@ -137,44 +136,5 @@ func runRomTest(t *testing.T, serialOutCallbacks []serialOutCallbackFunc, romPat
 		if err := png.Encode(f, r.gameBoy.GFX.Screen); err != nil {
 			t.Fatal(err)
 		}
-	}
-}
-
-func blarggSerialCallback() serialOutCallbackFunc {
-	var serialData []byte
-
-	return func(b byte) (bool, bool) {
-		serialData = append(serialData, b)
-
-		if strings.HasSuffix(string(serialData), "Passed") {
-			return false, true
-		}
-
-		if strings.HasSuffix(string(serialData), "Failed") {
-			return false, false
-		}
-
-		return true, true
-	}
-}
-
-func mooneyeSerialCallback() serialOutCallbackFunc {
-	var serialData []byte
-
-	successData := []byte{3, 5, 8, 13, 21, 34}
-	failData := []byte{66, 66, 66, 66, 66, 66}
-
-	return func(b byte) (bool, bool) {
-		serialData = append(serialData, b)
-
-		if reflect.DeepEqual(serialData, successData) {
-			return false, true
-		}
-
-		if reflect.DeepEqual(serialData, failData) {
-			return false, false
-		}
-
-		return true, true
 	}
 }
