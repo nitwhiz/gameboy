@@ -133,7 +133,7 @@ func runRomTest(t *testing.T, serialOutCallbacks []serialOutCallbackFunc, romPat
 			}
 		}(f)
 
-		if err := png.Encode(f, r.gameBoy.GFX.Screen); err != nil {
+		if err := png.Encode(f, r.gameBoy.PPU.Screen); err != nil {
 			t.Fatal(err)
 		}
 	}

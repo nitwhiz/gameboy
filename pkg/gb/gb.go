@@ -3,10 +3,10 @@ package gb
 import (
 	"context"
 	"github.com/nitwhiz/gameboy/pkg/cpu"
-	"github.com/nitwhiz/gameboy/pkg/gfx"
 	"github.com/nitwhiz/gameboy/pkg/input"
 	"github.com/nitwhiz/gameboy/pkg/interrupt"
 	"github.com/nitwhiz/gameboy/pkg/mmu"
+	"github.com/nitwhiz/gameboy/pkg/ppu"
 	"github.com/nitwhiz/gameboy/pkg/quarz"
 	"github.com/nitwhiz/gameboy/pkg/stack"
 	"log/slog"
@@ -25,7 +25,7 @@ type GameBoy struct {
 	IM    *interrupt.Manager
 	Stack *stack.Stack
 
-	GFX *gfx.GFX
+	PPU *ppu.PPU
 
 	ExecuteNextOpcodeFunc ExecuteNextOpcodeFunc
 
@@ -54,7 +54,7 @@ func New(options ...GameBoyOption) (*GameBoy, error) {
 
 	t := quarz.NewTimer(m, &i)
 
-	g := gfx.New(m, &i)
+	g := ppu.New(m, &i)
 
 	gameBoy := GameBoy{
 		CPU:   c,
@@ -63,7 +63,7 @@ func New(options ...GameBoyOption) (*GameBoy, error) {
 		Input: in,
 		Stack: &s,
 		IM:    &i,
-		GFX:   g,
+		PPU:   g,
 		mu:    &sync.Mutex{},
 	}
 
@@ -120,7 +120,7 @@ func (g *GameBoy) Update(ctx context.Context) {
 		}
 
 		g.Timer.Tick(ticks)
-		g.GFX.Update(ticks)
+		g.PPU.Update(ticks)
 
 		executedTicks += ticks
 	}

@@ -1,4 +1,4 @@
-package gfx
+package ppu
 
 import "github.com/nitwhiz/gameboy/pkg/bits"
 
@@ -9,8 +9,8 @@ const (
 	ColorBlack     = byte(0x00)
 )
 
-func (g *GFX) getColor(c byte, address uint16) byte {
-	palette := g.MMU.Read(address)
+func (p *PPU) getColor(c byte, address uint16) byte {
+	palette := p.MMU.Read(address)
 
 	hi := (c << 1) | 1
 	lo := c << 1

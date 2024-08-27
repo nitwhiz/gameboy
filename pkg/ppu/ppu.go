@@ -1,4 +1,4 @@
-package gfx
+package ppu
 
 import (
 	"github.com/nitwhiz/gameboy/pkg/addr"
@@ -35,7 +35,7 @@ const (
 	ModeSendPixels = PPUMode(3)
 )
 
-type GFX struct {
+type PPU struct {
 	MMU       *mmu.MMU
 	Interrupt *interrupt.Manager
 	Screen    *screen.Screen
@@ -43,8 +43,8 @@ type GFX struct {
 	Ticks int
 }
 
-func New(mmu *mmu.MMU, im *interrupt.Manager) *GFX {
-	return &GFX{
+func New(mmu *mmu.MMU, im *interrupt.Manager) *PPU {
+	return &PPU{
 		MMU:       mmu,
 		Interrupt: im,
 		Screen:    screen.New(),
@@ -52,46 +52,46 @@ func New(mmu *mmu.MMU, im *interrupt.Manager) *GFX {
 	}
 }
 
-func (g *GFX) Update(ticks int) {
-	lcdEnabled := g.updateLCDStatus()
-	g.Ticks += ticks
+func (p *PPU) Update(ticks int) {
+	lcdEnabled := p.updateLCDStatus()
+	p.Ticks += ticks
 
 	nextScanline := false
 
-	if lcdEnabled && g.Ticks > ScanlineDuration {
+	if lcdEnabled && p.Ticks > ScanlineDuration {
 		nextScanline = true
 		// todo: is this correct?
-		g.Ticks = 0
+		p.Ticks = 0
 	}
 
 	if nextScanline {
-		currentLine := g.MMU.IncLY()
+		currentLine := p.MMU.IncLY()
 
 		if currentLine > ScanlineCount {
-			g.MMU.SetLY(0)
+			p.MMU.SetLY(0)
 			currentLine = 0
 		}
 
 		if currentLine == VisibleScanlineCount {
-			g.Interrupt.Request(interrupt.VBlank)
-			g.Screen.Blit()
+			p.Interrupt.Request(interrupt.VBlank)
+			p.Screen.Blit()
 		}
 	}
 }
 
-func (g *GFX) updateLCDStatus() bool {
-	lcdc := g.MMU.Read(addr.LCDC)
-	stat := g.MMU.Read(addr.STAT)
+func (p *PPU) updateLCDStatus() bool {
+	lcdc := p.MMU.Read(addr.LCDC)
+	stat := p.MMU.Read(addr.STAT)
 
 	if !bits.IsLCDEnabled(lcdc) {
-		g.Ticks = 0
-		g.MMU.SetLY(0)
-		g.MMU.Write(addr.STAT, bits.SetPPUMode(stat, byte(ModeVBlank)))
+		p.Ticks = 0
+		p.MMU.SetLY(0)
+		p.MMU.Write(addr.STAT, bits.SetPPUMode(stat, byte(ModeVBlank)))
 
 		return false
 	}
 
-	ly := g.MMU.Read(addr.LY)
+	ly := p.MMU.Read(addr.LY)
 	currentMode := PPUMode(bits.GetPPUMode(stat))
 
 	nextMode := currentMode
@@ -102,7 +102,7 @@ func (g *GFX) updateLCDStatus() bool {
 		stat = bits.SetPPUMode(stat, byte(ModeVBlank))
 		reqInterrupt = bits.IsLCDModeSelect(stat, byte(ModeVBlank))
 	} else {
-		currentTicks := g.Ticks
+		currentTicks := p.Ticks
 
 		if currentTicks >= TicksPassedBeforeOAMScan {
 			nextMode = ModeOAMScan
@@ -113,7 +113,7 @@ func (g *GFX) updateLCDStatus() bool {
 			stat = bits.SetPPUMode(stat, byte(ModeSendPixels))
 
 			if nextMode != currentMode {
-				g.renderScanline(ly)
+				p.renderScanline(ly)
 			}
 		} else {
 			// todo: this might be too early
@@ -124,20 +124,20 @@ func (g *GFX) updateLCDStatus() bool {
 	}
 
 	if reqInterrupt && (nextMode != currentMode) {
-		g.Interrupt.Request(interrupt.LCD)
+		p.Interrupt.Request(interrupt.LCD)
 	}
 
-	if ly == g.MMU.Read(addr.LYC) {
+	if ly == p.MMU.Read(addr.LYC) {
 		stat = bits.SetLYCLY(stat, true)
 
 		if bits.GetLYCSelect(stat) {
-			g.Interrupt.Request(interrupt.LCD)
+			p.Interrupt.Request(interrupt.LCD)
 		}
 	} else {
 		stat = bits.SetLYCLY(stat, false)
 	}
 
-	g.MMU.Write(addr.STAT, stat)
+	p.MMU.Write(addr.STAT, stat)
 
 	return true
 }
