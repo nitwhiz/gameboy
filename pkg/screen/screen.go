@@ -15,8 +15,7 @@ type Data = [Pixels]byte
 
 type Screen struct {
 	Background Data
-	Hot        Data
-	Cold       Data
+	Buffer     Data
 }
 
 func New() *Screen {
@@ -28,7 +27,7 @@ func (s *Screen) SetBackground(x, y, v byte) {
 }
 
 func (s *Screen) SetPixel(x, y, v byte) {
-	s.Hot[int(x)+int(y)*Width] = v
+	s.Buffer[int(x)+int(y)*Width] = v
 }
 
 func (s *Screen) GetBackground(x, y byte) byte {
@@ -36,19 +35,11 @@ func (s *Screen) GetBackground(x, y byte) byte {
 }
 
 func (s *Screen) GetPixel(x, y byte) byte {
-	return s.Hot[int(x)+int(y)*Width]
-}
-
-func (s *Screen) Blit() {
-	copy(s.Cold[:], s.Hot[:])
-
-	for i := range Pixels {
-		s.Background[i] = 0
-	}
+	return s.Buffer[int(x)+int(y)*Width]
 }
 
 func (s *Screen) Display() Data {
-	return s.Cold
+	return s.Buffer
 }
 
 func (s *Screen) ColorModel() color.Model {
@@ -61,6 +52,6 @@ func (s *Screen) Bounds() image.Rectangle {
 
 func (s *Screen) At(x, y int) color.Color {
 	return color.Gray{
-		Y: s.Cold[x+y*Width],
+		Y: s.Buffer[x+y*Width],
 	}
 }
