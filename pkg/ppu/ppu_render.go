@@ -4,151 +4,166 @@ import (
 	"github.com/nitwhiz/gameboy/pkg/addr"
 	"github.com/nitwhiz/gameboy/pkg/bits"
 	"github.com/nitwhiz/gameboy/pkg/screen"
+	"slices"
 )
 
-func getWindowTileMapArea(lcdc byte) uint16 {
-	if bits.Test(lcdc, 6) {
-		return 0x9C00
-	}
+func (p *PPU) renderBackground(lcdc byte, ly byte) {
+	hadWindowPixels := false
 
-	return 0x9800
-}
+	scx := p.MMU.Read(addr.SCX)
+	scy := p.MMU.Read(addr.SCY)
 
-func getBackgroundAndWindowTileDataArea(lcdc byte) uint16 {
-	if bits.Test(lcdc, 4) {
-		return 0x8000
-	}
-
-	return 0x8800
-}
-
-func getBackgroundTileMapArea(lcdc byte) uint16 {
-	if bits.Test(lcdc, 3) {
-		return 0x9C00
-	}
-
-	return 0x9800
-}
-
-func getPalette(attributes byte) uint16 {
-	if bits.Test(attributes, 4) {
-		return addr.OBP1
-	}
-
-	return addr.OBP0
-}
-
-func (p *PPU) renderBackground(lcdc, ly byte) {
-	if ly >= screen.Height {
-		return
-	}
-
-	tileDataAddr := getBackgroundAndWindowTileDataArea(lcdc)
-
-	unsigned := true
-
-	if tileDataAddr == 0x8800 {
-		unsigned = false
-	}
-
-	sy := p.MMU.Read(addr.SCY)
-	sx := p.MMU.Read(addr.SCX)
-	wy := p.MMU.Read(addr.WY)
 	wx := p.MMU.Read(addr.WX) - 7
+	wy := p.MMU.Read(addr.WY)
 
-	window := bits.IsLCDWindowEnabled(lcdc) && wy <= p.MMU.Read(addr.LY)
-
-	backgroundDataAddr := uint16(0)
-
-	if window {
-		backgroundDataAddr = getWindowTileMapArea(lcdc)
-	} else {
-		backgroundDataAddr = getBackgroundTileMapArea(lcdc)
+	if ly == wy {
+		p.WYLYInFrame = true
 	}
 
-	y := byte(0)
+	tileDataBaseAddr := TILE_BASE_ADDR_SIGNED
 
-	if window {
-		y = ly - wy
-	} else {
-		y = sy + ly
+	if bits.Test(lcdc, addr.LCDC_TILE_DATA_SELECT) {
+		tileDataBaseAddr = TILE_BASE_ADDR_UNSIGNED
 	}
 
-	tileRow := uint16(y/8) * 32
+	for tileX := uint16(0); tileX < 20; tileX++ {
+		win := bits.Test(lcdc, addr.LCDC_WINDOW_DISPLAY_ENABLE) && p.WYLYInFrame && byte(tileX) >= wx
 
-	for pixel := byte(0); pixel < screen.Width; pixel++ {
-		x := pixel + sx
-
-		if window && pixel >= wx {
-			x = pixel - wx
+		if win {
+			hadWindowPixels = true
 		}
 
-		tileCol := uint16(x / 8)
-		tileLoc := tileDataAddr
-		tileAddr := backgroundDataAddr + tileRow + tileCol
+		mapAddr := WINDOW_TILE_MAP_ADDR_0
 
-		if unsigned {
-			tileNum := int16(p.MMU.Read(tileAddr))
-			tileLoc += uint16(tileNum * 16)
+		if win {
+			if bits.Test(lcdc, addr.LCDC_WINDOW_TILE_MAP_SELECT) {
+				mapAddr = WINDOW_TILE_MAP_ADDR_1
+			}
 		} else {
-			tileNum := int16(int8(p.MMU.Read(tileAddr)))
-			tileLoc = uint16(int32(tileLoc) + int32((tileNum+128)*16))
+			if bits.Test(lcdc, addr.LCDC_BG_TILE_MAP_SELECT) {
+				mapAddr = WINDOW_TILE_MAP_ADDR_1
+			}
 		}
 
-		line := (y % 8) * 2
+		mapOffset := uint16(0)
 
-		d1 := p.MMU.Read(tileLoc + uint16(line))
-		d2 := p.MMU.Read(tileLoc + uint16(line) + 1)
+		if win {
+			mapOffset += (32 * p.WindowLineCounter / 8) & uint16(0x3FF)
+		} else {
+			mapOffset += (32 * (uint16((ly+scy)&0xFF) / 8)) & uint16(0x3FF)
+		}
 
-		colBit := (int(x%8) - 7) * -1
+		tileMapOffset := mapOffset
 
-		colNum := (bits.Val(d2, byte(colBit)) << 1) | bits.Val(d1, byte(colBit))
+		if !win {
+			tileMapOffset += (tileX + uint16((scx/8)&0x1F)) & uint16(0x3FF)
+		}
 
-		col := p.getColor(colNum, addr.BGP)
+		tileNo := p.MMU.Read(mapAddr + tileMapOffset)
 
-		p.Screen.SetPixel(pixel, ly, col)
-		p.Screen.SetBackground(pixel, ly, colNum)
+		tileDataAddr := tileDataBaseAddr
+
+		if tileDataBaseAddr == TILE_BASE_ADDR_UNSIGNED {
+			tileDataAddr += uint16(tileNo) * 16
+		} else {
+			tileDataAddr = uint16(int32(tileDataAddr) + int32(int16(tileNo)*16))
+		}
+
+		tileDataLoAddr := uint16(0)
+
+		if win {
+			tileDataLoAddr = tileDataAddr + (2 * (p.WindowLineCounter % 8))
+		} else {
+			tileDataLoAddr = tileDataAddr + (2 * ((uint16(ly) + uint16(scy)) % 8))
+		}
+
+		tileDataLo := p.MMU.Read(tileDataLoAddr)
+		tileDataHi := p.MMU.Read(tileDataLoAddr + 1)
+
+		for pixelX := byte(0); pixelX < 8; pixelX++ {
+			lo := bits.Val(tileDataLo, pixelX)
+			hi := bits.Val(tileDataHi, pixelX)
+
+			colNum := (hi << 1) | lo
+
+			col := p.getColor(colNum, addr.BGP)
+
+			p.Screen.SetBackground(byte(tileX)*8+pixelX, ly, colNum, col)
+		}
+	}
+
+	if hadWindowPixels {
+		p.WindowLineCounter++
 	}
 }
 
-func (p *PPU) renderSprites(lcdc, ly byte) {
-	ys := int32(8)
+func (p *PPU) renderSprites(lcdc byte, ly byte) {
+	ys := uint32(8)
 
-	if bits.IsLCDObjSize8x16(lcdc) {
+	if bits.Test(lcdc, addr.LCDC_SPRITE_SIZE) {
 		ys = 16
 	}
 
-	scanline := int32(ly)
+	scanline := uint32(ly)
 	spritesLeft := int8(10)
+
+	var objects []uint32
 
 	for s := uint16(0); s < 40; s++ {
 		index := s * 4
 
-		y := int32(p.MMU.Read(addr.MemOAMBegin+index)) - 16
+		y := uint32(p.MMU.Read(addr.MemOAMBegin + index))
+		x := uint32(p.MMU.Read(addr.MemOAMBegin + index + 1))
 
-		if scanline < y || scanline >= (y+ys) {
-			continue
+		if x > 0 && scanline+16 >= y && scanline+16 < y+ys {
+			skip := false
+
+			for _, o := range objects {
+				ox := (o >> 24) & 0xFF
+
+				if ox == x {
+					// skip objects with same x, but higher oam index
+					skip = true
+				}
+			}
+
+			if !skip {
+				objects = append(objects, (x<<24)|(uint32(index)<<8)|y)
+				spritesLeft--
+
+				if spritesLeft <= 0 {
+					break
+				}
+			}
 		}
+	}
 
-		if spritesLeft <= 0 {
-			break
-		}
+	slices.SortStableFunc(objects, func(a, b uint32) int {
+		return int(a) - int(b)
+	})
 
-		spritesLeft--
+	for _, o := range objects {
+		index := uint16((o >> 8) & 0xFFFF)
+		x := int32((o>>24)&0xFF) - 8
+		y := int32(o&0xFF) - 16
 
-		x := int32(p.MMU.Read(addr.MemOAMBegin+index+1)) - 8
+		//		x := int32(p.MMU.Read(addr.MemOAMBegin+index+1)) - 8
 
 		tileLoc := p.MMU.Read(addr.MemOAMBegin + index + 2)
+
+		if ys == 16 {
+			// bit 0 is ignored for 8x16
+			tileLoc = tileLoc & 0xFE
+		}
+
 		attributes := p.MMU.Read(addr.MemOAMBegin + index + 3)
 
-		xFlip, yFlip, priority := bits.OAMAttributes(attributes)
+		xFlip, yFlip, bgPriority, pal := bits.OAMAttributes(attributes)
 
-		pal := getPalette(attributes)
-
-		line := scanline - y
+		line := int32(scanline) - y
 
 		if yFlip {
-			line = ys - line - 1
+			line = int32(ys) - line - 1
 		}
 
 		dAddress := addr.MemVRAMBegin + (uint16(tileLoc) * 16) + uint16(line*2)
@@ -156,42 +171,42 @@ func (p *PPU) renderSprites(lcdc, ly byte) {
 		d1 := p.MMU.Read(dAddress)
 		d2 := p.MMU.Read(dAddress + 1)
 
-		for tilePixel := byte(0); tilePixel < 8; tilePixel++ {
+		for tilePixel := 0; tilePixel < 8; tilePixel++ {
 			pixel := int16(x) + int16(7-tilePixel)
 
 			if pixel < 0 || pixel >= screen.Width {
 				continue
 			}
 
-			colBit := tilePixel
+			colBit := byte(tilePixel)
 
 			if xFlip {
-				colBit = byte(int8(tilePixel-7) * -1)
+				colBit = byte((int8(tilePixel) - 7) * -1)
 			}
 
 			colNum := (bits.Val(d2, colBit) << 1) | bits.Val(d1, colBit)
 
-			if colNum == 0 {
-				continue
-			}
-
 			col := p.getColor(colNum, pal)
 
-			if !priority || p.Screen.GetBackground(byte(pixel), byte(scanline)) == 0 {
-				p.Screen.SetPixel(byte(pixel), byte(scanline), col)
+			prioByte := byte(0)
+
+			if bgPriority {
+				prioByte = 1
 			}
+
+			p.Screen.SetSprite(byte(pixel), byte(scanline), prioByte, colNum, col)
 		}
 	}
 }
 
-func (p *PPU) renderScanline(ly byte) {
-	lcdc := p.MMU.Read(addr.LCDC)
-
-	if bits.IsLCDBackgroundAndWindowEnabled(lcdc) {
+func (p *PPU) renderScanline(lcdc byte, ly byte) {
+	if bits.Test(lcdc, addr.LCDC_BG_WINDOW_ENABLE) {
 		p.renderBackground(lcdc, ly)
 	}
 
-	if bits.IsLCDObjEnabled(lcdc) {
+	if bits.Test(lcdc, addr.LCDC_SPRITE_ENABLE) {
 		p.renderSprites(lcdc, ly)
 	}
+
+	p.Screen.BlitScanline(ly)
 }

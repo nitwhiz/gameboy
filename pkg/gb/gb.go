@@ -5,6 +5,7 @@ import (
 	"github.com/nitwhiz/gameboy/pkg/cpu"
 	"github.com/nitwhiz/gameboy/pkg/input"
 	"github.com/nitwhiz/gameboy/pkg/interrupt"
+	"github.com/nitwhiz/gameboy/pkg/interrupt_bus"
 	"github.com/nitwhiz/gameboy/pkg/mmu"
 	"github.com/nitwhiz/gameboy/pkg/ppu"
 	"github.com/nitwhiz/gameboy/pkg/quarz"
@@ -23,6 +24,7 @@ type GameBoy struct {
 	Input *input.State
 
 	IM    *interrupt.Manager
+	IMBus *interrupt_bus.Bus
 	Stack *stack.Stack
 
 	PPU *ppu.PPU
@@ -39,22 +41,27 @@ func New(options ...GameBoyOption) (*GameBoy, error) {
 
 	in := input.NewState()
 
-	m := mmu.New(in)
+	ib := interrupt_bus.Bus{
+		IF: 0,
+	}
+
+	m := mmu.New(in, &ib)
 
 	s := stack.Stack{
 		CPU: c,
 		MMU: m,
 	}
 
+	t := quarz.NewTimer(m, &ib)
+
 	i := interrupt.Manager{
 		CPU:   c,
 		MMU:   m,
 		Stack: &s,
+		IMBus: &ib,
 	}
 
-	t := quarz.NewTimer(m, &i)
-
-	g := ppu.New(m, &i)
+	g := ppu.New(m, &ib)
 
 	gameBoy := GameBoy{
 		CPU:   c,
@@ -63,6 +70,7 @@ func New(options ...GameBoyOption) (*GameBoy, error) {
 		Input: in,
 		Stack: &s,
 		IM:    &i,
+		IMBus: &ib,
 		PPU:   g,
 		mu:    &sync.Mutex{},
 	}

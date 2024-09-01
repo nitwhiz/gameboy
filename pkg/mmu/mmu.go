@@ -5,6 +5,7 @@ import (
 	"github.com/nitwhiz/gameboy/pkg/bits"
 	"github.com/nitwhiz/gameboy/pkg/cartridge"
 	"github.com/nitwhiz/gameboy/pkg/input"
+	"github.com/nitwhiz/gameboy/pkg/interrupt_bus"
 	"github.com/nitwhiz/gameboy/pkg/memory"
 )
 
@@ -12,6 +13,7 @@ type MMU struct {
 	Cartridge *cartridge.Cartridge
 	Memory    *memory.Memory
 	Input     *input.State
+	IMBus     *interrupt_bus.Bus
 
 	TimerCounter uint16
 	TimerLock    bool
@@ -19,11 +21,12 @@ type MMU struct {
 	SerialReceiver func(byte)
 }
 
-func New(in *input.State) *MMU {
+func New(in *input.State, imbus *interrupt_bus.Bus) *MMU {
 	return &MMU{
 		Cartridge:      nil,
 		Memory:         memory.New().Init(),
 		Input:          in,
+		IMBus:          imbus,
 		TimerCounter:   0xAC00,
 		TimerLock:      false,
 		SerialReceiver: nil,
@@ -39,7 +42,7 @@ func (m *MMU) Read(address uint16) byte {
 	case address == addr.IE:
 		return m.Memory.IE
 	case address == addr.IF:
-		return getUnusedBitsIO(addr.IF) | m.Memory.IF
+		return getUnusedBitsIO(addr.IF) | m.IMBus.IF
 	case address == addr.DIV:
 		return byte((m.TimerCounter & 0xFF00) >> 8)
 	case address == addr.JOYP:
@@ -76,7 +79,7 @@ func (m *MMU) Write(address uint16, v byte) {
 	case address == addr.IE:
 		m.Memory.IE = v
 	case address == addr.IF:
-		m.Memory.IF = v & ^getUnusedBitsIO(addr.IF)
+		m.IMBus.IF = v & ^getUnusedBitsIO(addr.IF)
 	case address == addr.DIV:
 		m.ResetTimer()
 	case inRange(address, addr.MemAudioBegin, addr.MemAudioEnd):
@@ -102,6 +105,24 @@ func (m *MMU) Write(address uint16, v byte) {
 	}
 }
 
+func (m *MMU) CheckLYCLY() {
+	ly := m.Read(addr.LY)
+	lyc := m.Read(addr.LYC)
+	stat := m.Read(addr.STAT)
+
+	if ly == lyc {
+		stat = bits.Set(stat, addr.STAT_COINCIDENCE_FLAG)
+
+		if bits.Test(stat, addr.STAT_LYCLY_INTERRUPT_ENABLE) {
+			m.IMBus.Request(interrupt_bus.LCD)
+		}
+	} else {
+		stat = bits.Reset(stat, addr.STAT_COINCIDENCE_FLAG)
+	}
+
+	m.Write(addr.STAT, stat)
+}
+
 func (m *MMU) writeIO(address uint16, v byte) {
 	if isUnmappedIO(address) {
 		return
@@ -112,26 +133,33 @@ func (m *MMU) writeIO(address uint16, v byte) {
 	switch {
 	case address == addr.JOYP:
 		m.Memory.IO[address-addr.MemIOBegin] = v & 0b00110000
+		return
 	case address == addr.SC:
 		if bits.Test(v, 7) && bits.Test(v, 0) {
 			if m.SerialReceiver != nil {
 				m.SerialReceiver(m.Read(addr.SB))
 			}
 		}
-	case address == addr.STAT:
-		m.Memory.IO[address-addr.MemIOBegin] = v
-	case address == addr.LY:
-		m.SetLY(0)
+	case address == addr.LCDC:
+		if !bits.Test(v, addr.LCDC_ENABLE) {
+			m.SetLY(0)
+			return
+		}
 	case address == addr.DMA:
 		m.dmaTransfer(v)
+		return
 	case address == addr.TIMA:
 		if m.TimerLock {
 			return
 		}
-		fallthrough
-	default:
+	case address == addr.LYC:
 		m.Memory.IO[address-addr.MemIOBegin] = v
+		m.CheckLYCLY()
+		return
+	default:
 	}
+
+	m.Memory.IO[address-addr.MemIOBegin] = v
 }
 
 // SetTIMA does not respect the timer lock

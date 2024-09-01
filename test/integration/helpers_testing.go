@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-const defaultMaxFrames = 5000
+const defaultMaxFrames = 100
 
 type romTestCase struct {
 	t         *testing.T

@@ -4,16 +4,16 @@ import "github.com/nitwhiz/gameboy/pkg/bits"
 
 const (
 	ColorWhite     = byte(0xFF)
-	ColorLightGrey = byte(0xCC)
-	ColorDarkGrey  = byte(0x77)
+	ColorLightGrey = byte(0xAA)
+	ColorDarkGrey  = byte(0x55)
 	ColorBlack     = byte(0x00)
 )
 
 func (p *PPU) getColor(c byte, address uint16) byte {
 	palette := p.MMU.Read(address)
 
-	hi := (c << 1) | 1
-	lo := c << 1
+	hi := c*2 + 1
+	lo := c * 2
 
 	col := (bits.Val(palette, hi) << 1) | bits.Val(palette, lo)
 

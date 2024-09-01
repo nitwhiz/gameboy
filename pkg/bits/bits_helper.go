@@ -1,5 +1,7 @@
 package bits
 
+import "github.com/nitwhiz/gameboy/pkg/addr"
+
 var bitMasks = map[byte]byte{
 	1:   0b1,
 	3:   0b11,
@@ -66,14 +68,6 @@ func GetPPUMode(stat byte) byte {
 	return stat & 0b11
 }
 
-func SetLYCLY(stat byte, v bool) byte {
-	if v {
-		return Set(stat, 2)
-	}
-
-	return Reset(stat, 2)
-}
-
 func IsLCDModeSelect(stat byte, mode byte) bool {
 	return Test(stat, 1<<(mode+3))
 }
@@ -102,8 +96,16 @@ func IsLCDWindowEnabled(lcdc byte) bool {
 	return Test(lcdc, 5)
 }
 
-func OAMAttributes(attributes byte) (xFlip, yFlip, priority bool) {
-	return Test(attributes, 5), Test(attributes, 6), Test(attributes, 7)
+func OAMAttributes(attributes byte) (xFlip, yFlip, bgPriority bool, palette uint16) {
+	palette = addr.OBP0
+
+	if Test(attributes, addr.OAM_ATTR_PALETTE) {
+		palette = addr.OBP1
+	}
+
+	return Test(attributes, addr.OAM_ATTR_X_FLIP),
+		Test(attributes, addr.OAM_ATTR_Y_FLIP),
+		Test(attributes, addr.OAM_ATTR_PRIORITY), palette
 }
 
 func IsJOYPSelectButtons(joyp byte) bool {

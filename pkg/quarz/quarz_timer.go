@@ -3,7 +3,7 @@ package quarz
 import (
 	"github.com/nitwhiz/gameboy/pkg/addr"
 	"github.com/nitwhiz/gameboy/pkg/bits"
-	"github.com/nitwhiz/gameboy/pkg/interrupt"
+	"github.com/nitwhiz/gameboy/pkg/interrupt_bus"
 	"github.com/nitwhiz/gameboy/pkg/mmu"
 )
 
@@ -13,17 +13,17 @@ type Timer struct {
 	LoadTMAIn            int
 	TriggerInterrupt     bool
 	MMU                  *mmu.MMU
-	IM                   *interrupt.Manager
+	IMBus                *interrupt_bus.Bus
 }
 
-func NewTimer(m *mmu.MMU, i *interrupt.Manager) *Timer {
+func NewTimer(m *mmu.MMU, i *interrupt_bus.Bus) *Timer {
 	return &Timer{
 		LastTACEnabled:       false,
 		TriggerOnFallingEdge: false,
 		LoadTMAIn:            -1,
 		TriggerInterrupt:     false,
 		MMU:                  m,
-		IM:                   i,
+		IMBus:                i,
 	}
 }
 
@@ -84,7 +84,7 @@ func (t *Timer) Tick(ticks int) {
 	if t.TriggerInterrupt {
 		t.TriggerInterrupt = false
 		nextTima = int(tma)
-		t.IM.Request(interrupt.Timer)
+		t.IMBus.Request(interrupt_bus.Timer)
 	}
 
 	t.MMU.SetTIMA(byte(nextTima))

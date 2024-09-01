@@ -56,7 +56,9 @@ var testTemplate = template.Must(template.New("testRoms").
 		t.Parallel()
 		{{ if .FullPath }}
 		runRomTest(t, []serialOutCallbackFunc{
+			{{- if .SerialCallbackFuncName }}
 			{{ .SerialCallbackFuncName }}(),
+			{{ end -}}
 		}, "{{ .FullPath }}", context.Background())
 		{{ end -}}
 
@@ -99,7 +101,9 @@ var benchTemplate = template.Must(template.New("benchRoms").
 	b.Run("{{ .Name }}", func(b *testing.B) {
 		{{- if .FullPath -}}
 		runRomBenchmark(b, []serialOutCallbackCreator{
+			{{- if .SerialCallbackFuncName }}
 			{{ .SerialCallbackFuncName }},
+			{{ end -}}
 		}, "{{ .FullPath }}", context.Background())
 		{{ end -}}
 
@@ -197,6 +201,7 @@ var romTestCollections = []struct {
 }{
 	{"Blargg", "../../testdata/roms/blargg/", "blarggSerialCallback", "gb_roms_blargg_test.go"},
 	{"Mooneye", "../../testdata/roms/mooneye/", "mooneyeSerialCallback", "gb_roms_mooneye_test.go"},
+	{"Misc", "../../testdata/roms/misc/", "", "gb_roms_misc_test.go"},
 }
 
 var romBenchCollections = []struct {

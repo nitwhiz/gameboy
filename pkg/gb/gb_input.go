@@ -2,7 +2,7 @@ package gb
 
 import (
 	"github.com/nitwhiz/gameboy/pkg/input"
-	"github.com/nitwhiz/gameboy/pkg/interrupt"
+	"github.com/nitwhiz/gameboy/pkg/interrupt_bus"
 )
 
 func (g *GameBoy) PressButton(button input.Button) {
@@ -11,5 +11,5 @@ func (g *GameBoy) PressButton(button input.Button) {
 
 func (g *GameBoy) ReleaseButton(button input.Button) {
 	g.Input.Release(button)
-	g.IM.Request(interrupt.Joypad)
+	g.IMBus.Request(interrupt_bus.Joypad)
 }
