@@ -39,8 +39,8 @@ const (
 const TILE_BASE_ADDR_UNSIGNED = uint16(0x8000)
 const TILE_BASE_ADDR_SIGNED = uint16(0x9000)
 
-const WINDOW_TILE_MAP_ADDR_1 = uint16(0x9C00)
-const WINDOW_TILE_MAP_ADDR_0 = uint16(0x9800)
+const BG_WINDOW_TILE_MAP_ADDR_9C00 = uint16(0x9C00)
+const BG_WINDOW_TILE_MAP_ADDR_9800 = uint16(0x9800)
 
 type PPU struct {
 	MMU    *mmu.MMU
@@ -49,7 +49,6 @@ type PPU struct {
 
 	Ticks             int
 	WindowLineCounter uint16
-	WYLYInFrame       bool
 }
 
 func New(mmu *mmu.MMU, imbus *interrupt_bus.Bus) *PPU {
@@ -109,18 +108,17 @@ func (p *PPU) Update(ticks int) {
 
 		nextLY := p.MMU.IncLY()
 
-		if nextLY == VisibleScanlineCount {
-			p.IMBus.Request(interrupt_bus.VBlank)
-			p.WYLYInFrame = false
-			p.WindowLineCounter = 0
-		}
-
 		if nextLY > ScanlineCount {
 			p.MMU.SetLY(0)
 		}
 
 		if nextLY <= VisibleScanlineCount {
 			p.renderScanline(lcdc, ly)
+		}
+
+		if nextLY == VisibleScanlineCount {
+			p.IMBus.Request(interrupt_bus.VBlank)
+			p.WindowLineCounter = 0
 		}
 
 		p.MMU.CheckLYCLY()

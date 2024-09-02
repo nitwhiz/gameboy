@@ -8,17 +8,11 @@ import (
 )
 
 func (p *PPU) renderBackground(lcdc byte, ly byte) {
-	hadWindowPixels := false
-
 	scx := p.MMU.Read(addr.SCX)
 	scy := p.MMU.Read(addr.SCY)
 
-	wx := p.MMU.Read(addr.WX) - 7
+	wx := uint16(p.MMU.Read(addr.WX)) - 7
 	wy := p.MMU.Read(addr.WY)
-
-	if ly == wy {
-		p.WYLYInFrame = true
-	}
 
 	tileDataBaseAddr := TILE_BASE_ADDR_SIGNED
 
@@ -26,70 +20,71 @@ func (p *PPU) renderBackground(lcdc byte, ly byte) {
 		tileDataBaseAddr = TILE_BASE_ADDR_UNSIGNED
 	}
 
-	for tileX := uint16(0); tileX < 20; tileX++ {
-		win := bits.Test(lcdc, addr.LCDC_WINDOW_DISPLAY_ENABLE) && p.WYLYInFrame && byte(tileX) >= wx
+	lywy := ly >= wy
+
+	hadWindowPixels := false
+
+	for pixelX := uint16(0); pixelX < ScanlineWidth; pixelX++ {
+		win := bits.Test(lcdc, addr.LCDC_WINDOW_DISPLAY_ENABLE) && lywy && pixelX >= wx
 
 		if win {
 			hadWindowPixels = true
 		}
 
-		mapAddr := WINDOW_TILE_MAP_ADDR_0
+		mapAddr := BG_WINDOW_TILE_MAP_ADDR_9800
 
 		if win {
 			if bits.Test(lcdc, addr.LCDC_WINDOW_TILE_MAP_SELECT) {
-				mapAddr = WINDOW_TILE_MAP_ADDR_1
+				mapAddr = BG_WINDOW_TILE_MAP_ADDR_9C00
 			}
 		} else {
 			if bits.Test(lcdc, addr.LCDC_BG_TILE_MAP_SELECT) {
-				mapAddr = WINDOW_TILE_MAP_ADDR_1
+				mapAddr = BG_WINDOW_TILE_MAP_ADDR_9C00
 			}
 		}
 
+		tileCol := pixelX / 8
 		mapOffset := uint16(0)
 
 		if win {
-			mapOffset += (32 * p.WindowLineCounter / 8) & uint16(0x3FF)
+			mapOffset = ((p.WindowLineCounter / 8) * 32) + (tileCol & 0x1F)
 		} else {
-			mapOffset += (32 * (uint16((ly+scy)&0xFF) / 8)) & uint16(0x3FF)
+			mapOffset = ((((uint16(ly) + uint16(scy)) & 0xFF) / 8) * 32) + ((uint16(scx/8) + tileCol) & 0x1F)
 		}
 
-		tileMapOffset := mapOffset
+		mapOffset &= uint16(0x03FF)
 
-		if !win {
-			tileMapOffset += (tileX + uint16((scx/8)&0x1F)) & uint16(0x3FF)
-		}
+		tileNo := p.MMU.Read(mapAddr + mapOffset)
 
-		tileNo := p.MMU.Read(mapAddr + tileMapOffset)
-
-		tileDataAddr := tileDataBaseAddr
+		tileDataAddr := uint16(0)
 
 		if tileDataBaseAddr == TILE_BASE_ADDR_UNSIGNED {
-			tileDataAddr += uint16(tileNo) * 16
+			tileDataAddr = tileDataBaseAddr + (uint16(tileNo) * 16)
 		} else {
-			tileDataAddr = uint16(int32(tileDataAddr) + int32(int16(tileNo)*16))
+			tileDataAddr = uint16(int32(tileDataBaseAddr) + int32(int8(tileNo))*16)
 		}
 
-		tileDataLoAddr := uint16(0)
+		tileDataLoAddr := tileDataAddr
 
 		if win {
-			tileDataLoAddr = tileDataAddr + (2 * (p.WindowLineCounter % 8))
+			tileDataLoAddr += 2 * (p.WindowLineCounter % 8)
 		} else {
-			tileDataLoAddr = tileDataAddr + (2 * ((uint16(ly) + uint16(scy)) % 8))
+			tileDataLoAddr += 2 * ((uint16(ly) + uint16(scy)) % 8)
 		}
 
 		tileDataLo := p.MMU.Read(tileDataLoAddr)
 		tileDataHi := p.MMU.Read(tileDataLoAddr + 1)
 
-		for pixelX := byte(0); pixelX < 8; pixelX++ {
-			lo := bits.Val(tileDataLo, pixelX)
-			hi := bits.Val(tileDataHi, pixelX)
+		tileDataColorBit := byte(7 - (pixelX % 8))
 
-			colNum := (hi << 1) | lo
+		lo := bits.Val(tileDataLo, tileDataColorBit)
+		hi := bits.Val(tileDataHi, tileDataColorBit)
 
-			col := p.getColor(colNum, addr.BGP)
+		colNum := (hi << 1) | lo
 
-			p.Screen.SetBackground(byte(tileX)*8+pixelX, ly, colNum, col)
-		}
+		col := p.getColor(colNum, addr.BGP)
+
+		p.Screen.SetBackground(byte(pixelX), ly, colNum, col)
 	}
 
 	if hadWindowPixels {
@@ -146,8 +141,6 @@ func (p *PPU) renderSprites(lcdc byte, ly byte) {
 		index := uint16((o >> 8) & 0xFFFF)
 		x := int32((o>>24)&0xFF) - 8
 		y := int32(o&0xFF) - 16
-
-		//		x := int32(p.MMU.Read(addr.MemOAMBegin+index+1)) - 8
 
 		tileLoc := p.MMU.Read(addr.MemOAMBegin + index + 2)
 
