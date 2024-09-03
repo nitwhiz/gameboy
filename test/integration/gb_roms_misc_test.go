@@ -1,5 +1,5 @@
 // Do not edit. This is auto-generated.
-// Timestamp: 2024-09-01T11:47:01Z
+// Timestamp: 2024-09-03T21:59:21Z
 
 package integration
 
@@ -18,7 +18,12 @@ func TestMiscRoms(t *testing.T) {
 	t.Run("dmg-acid2", func(t *testing.T) {
 		t.Parallel()
 
-		runRomTest(t, []serialOutCallbackFunc{}, "../../testdata/roms/misc/dmg-acid2.gb", context.Background())
+		t.Run("dmg-acid2", func(t *testing.T) {
+			t.Parallel()
+
+			runRomTest(t, []serialOutCallbackFunc{}, "../../testdata/roms/misc/dmg-acid2/dmg-acid2.gb", context.Background())
+		})
+
 	})
 
 }

@@ -210,6 +210,7 @@ var romBenchCollections = []struct {
 	SerialCallbackFuncName string
 	OutFile                string
 }{
+	{"Acid2", "../../testdata/roms/misc/dmg-acid2", "", "gb_roms_acid2_bench_test.go"},
 	{"BlarggCpuInstrs", "../../testdata/roms/blargg/cpu_instrs", "blarggSerialCallback", "gb_roms_blargg_bench_test.go"},
 	{"MooneyeMBC1", "../../testdata/roms/mooneye/emulator-only/mbc1", "mooneyeSerialCallback", "gb_roms_mooneye_bench_test.go"},
 }
