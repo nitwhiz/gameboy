@@ -5,7 +5,7 @@ import (
 	"html/template"
 	"log/slog"
 	"os"
-	"path"
+	"path/filepath"
 	"slices"
 	"strings"
 	"time"
@@ -20,7 +20,7 @@ func eachRom(root string, cb func(romFile string)) error {
 
 	for _, entry := range dir {
 		name := entry.Name()
-		fullPath := path.Join(root, name)
+		fullPath := filepath.Join(root, name)
 
 		if !entry.IsDir() {
 			if strings.HasSuffix(name, ".gb") {

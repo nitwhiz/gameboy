@@ -27,7 +27,7 @@ func New() *Screen {
 }
 
 func (s *Screen) SetBackground(x, y, colNum, color byte) {
-	s.Background[int(x)+int(y)*Width] = uint16(color) | (uint16(colNum) << 8)
+	s.Background[int(x)+int(y)*Width] = uint16(color) | ((uint16(colNum) | (1 << 2)) << 8)
 }
 
 func (s *Screen) SetSprite(x, y, priority, colNum, color byte) {
@@ -40,15 +40,12 @@ func (s *Screen) SetSprite(x, y, priority, colNum, color byte) {
 	}
 }
 
-func (s *Screen) ClearSprites(y byte) {
+func (s *Screen) ClearScanline(y byte) {
 	for x := range Width {
 		s.Sprite[x+int(y)*Width] = 0
+		s.Background[x+int(y)*Width] = 0
 	}
 }
-
-//func (s *Screen) SetPixel(x, y, v byte) {
-//	s.Buffer[int(x)+int(y)*Width] = v
-//}
 
 func (s *Screen) GetBackground(x, y byte) uint16 {
 	return s.Background[int(x)+int(y)*Width]
@@ -57,11 +54,6 @@ func (s *Screen) GetBackground(x, y byte) uint16 {
 func (s *Screen) GetSprite(x, y byte) uint16 {
 	return s.Sprite[int(x)+int(y)*Width]
 }
-
-//
-//func (s *Screen) GetPixel(x, y byte) byte {
-//	return s.Buffer[int(x)+int(y)*Width]
-//}
 
 func (s *Screen) Display() PixelData {
 	return s.Buffer
@@ -72,6 +64,10 @@ func (s *Screen) BlitScanline(y byte) {
 		background := s.Background[x+int(y)*Width]
 		backgroundColor := byte(background & 0xFF)
 		backgroundInfo := byte((background >> 8) & 0xFF)
+
+		if backgroundInfo&0b100 == 0 {
+			backgroundColor = 0xFF
+		}
 
 		sprite := s.Sprite[x+int(y)*Width]
 		spriteColor := byte(sprite & 0xFF)
@@ -90,7 +86,7 @@ func (s *Screen) BlitScanline(y byte) {
 		s.Buffer[x+int(y)*Width] = pixelColor
 	}
 
-	s.ClearSprites(y)
+	s.ClearScanline(y)
 }
 
 func (s *Screen) ColorModel() color.Model {
