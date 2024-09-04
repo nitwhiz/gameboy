@@ -141,7 +141,7 @@ func (p *PPU) renderSprites(lcdc byte, ly byte) {
 	}
 
 	slices.SortStableFunc(objects, func(a, b uint32) int {
-		return int(a) - int(b)
+		return int(b) - int(a)
 	})
 
 	for _, o := range objects {

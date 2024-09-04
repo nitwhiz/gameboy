@@ -31,13 +31,12 @@ func (s *Screen) SetBackground(x, y, colNum, color byte) {
 }
 
 func (s *Screen) SetSprite(x, y, priority, colNum, color byte) {
-	sprite := s.Sprite[int(x)+int(y)*Width]
-	spriteInfo := byte((sprite >> 8) & 0xFF)
-
-	if colNum == 0 || spriteInfo&0b1000 == 0 {
-		s.Sprite[int(x)+int(y)*Width] = uint16(color) |
-			((uint16(colNum) | (uint16(priority) << 2) | (1 << 3)) << 8)
+	if colNum == 0 {
+		return
 	}
+
+	s.Sprite[int(x)+int(y)*Width] = uint16(color) |
+		((uint16(colNum) | (uint16(priority) << 2) | (1 << 3)) << 8)
 }
 
 func (s *Screen) ClearScanline(y byte) {
@@ -75,10 +74,17 @@ func (s *Screen) BlitScanline(y byte) {
 
 		pixelColor := spriteColor
 
+		if spriteInfo&0b1000 == 0 {
+			// sprite pixel is not defined
+			pixelColor = backgroundColor
+		}
+
 		if spriteInfo&0b11 == 0 {
 			// sprite pixel color num is 0
 			pixelColor = backgroundColor
-		} else if spriteInfo&0b100 != 0 && backgroundInfo&0b11 != 0 {
+		}
+
+		if spriteInfo&0b100 != 0 && backgroundInfo&0b11 != 0 {
 			// priority is 1 and background is not 0
 			pixelColor = backgroundColor
 		}
