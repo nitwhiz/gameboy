@@ -8,22 +8,20 @@ import (
 )
 
 type Timer struct {
-	LastTACEnabled       bool
-	TriggerOnFallingEdge bool
-	LoadTMAIn            int
-	TriggerInterrupt     bool
-	MMU                  *mmu.MMU
-	IMBus                *interrupt_bus.Bus
+	LastTACEnabled        bool
+	TriggerOnFallingEdge  bool
+	PostTIMAOverflowTicks int
+	MMU                   *mmu.MMU
+	IMBus                 *interrupt_bus.Bus
 }
 
 func NewTimer(m *mmu.MMU, i *interrupt_bus.Bus) *Timer {
 	return &Timer{
-		LastTACEnabled:       false,
-		TriggerOnFallingEdge: false,
-		LoadTMAIn:            -1,
-		TriggerInterrupt:     false,
-		MMU:                  m,
-		IMBus:                i,
+		LastTACEnabled:        false,
+		TriggerOnFallingEdge:  false,
+		PostTIMAOverflowTicks: -1,
+		MMU:                   m,
+		IMBus:                 i,
 	}
 }
 
@@ -39,10 +37,6 @@ func (t *Timer) Tick(ticks int) {
 		nextTima++
 	}
 
-	if t.LoadTMAIn == -1 {
-		t.MMU.TimerLock = false
-	}
-
 	tacEnabled := bits.IsTACEnabled(tac)
 	clockSelect := bits.GetTACClockSelect(tac)
 	tacMask := GetTACMask(clockSelect)
@@ -54,13 +48,18 @@ func (t *Timer) Tick(ticks int) {
 	for range ticks {
 		t.MMU.TimerCounter++
 
-		if t.LoadTMAIn > -1 {
-			t.LoadTMAIn--
+		if t.PostTIMAOverflowTicks > -1 {
+			t.PostTIMAOverflowTicks++
 		}
 
-		if t.LoadTMAIn == 0 {
-			t.LoadTMAIn = -1
-			t.TriggerInterrupt = true
+		if t.PostTIMAOverflowTicks == 4 {
+			nextTima = int(tma)
+			t.IMBus.Request(interrupt_bus.Timer)
+		}
+
+		if t.PostTIMAOverflowTicks == 5 {
+			nextTima = int(tma)
+			t.PostTIMAOverflowTicks = -1
 		}
 
 		if tacEnabled {
@@ -76,15 +75,8 @@ func (t *Timer) Tick(ticks int) {
 	t.LastTACEnabled = tacEnabled
 
 	if nextTima > 0xFF {
-		t.MMU.TimerLock = true
-		t.LoadTMAIn = 4
+		t.PostTIMAOverflowTicks = 0
 		nextTima = nextTima - 0x100
-	}
-
-	if t.TriggerInterrupt {
-		t.TriggerInterrupt = false
-		nextTima = int(tma)
-		t.IMBus.Request(interrupt_bus.Timer)
 	}
 
 	t.MMU.SetTIMA(byte(nextTima))
