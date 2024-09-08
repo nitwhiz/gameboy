@@ -8,10 +8,12 @@ type Memory struct {
 
 	IO [0x0080]byte
 
-	// IE - IMBus Enable
+	// IE - Interrupt Enable
 	IE byte
-	// IF - IMBus Flags
+	// IF - Interrupt Flags
 	IF byte
+	// IME - Interrupt Master Enable
+	IME byte
 
 	TimerCounter uint16
 }

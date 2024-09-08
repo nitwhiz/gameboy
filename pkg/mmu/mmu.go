@@ -5,7 +5,6 @@ import (
 	"github.com/nitwhiz/gameboy/pkg/bits"
 	"github.com/nitwhiz/gameboy/pkg/cartridge"
 	"github.com/nitwhiz/gameboy/pkg/input"
-	"github.com/nitwhiz/gameboy/pkg/interrupt_bus"
 	"github.com/nitwhiz/gameboy/pkg/memory"
 )
 
@@ -13,7 +12,6 @@ type MMU struct {
 	Cartridge *cartridge.Cartridge
 	Memory    *memory.Memory
 	Input     *input.State
-	IMBus     *interrupt_bus.Bus
 
 	TimerCounter uint16
 	TimerLock    bool
@@ -21,12 +19,11 @@ type MMU struct {
 	SerialReceiver func(byte)
 }
 
-func New(in *input.State, imbus *interrupt_bus.Bus) *MMU {
+func New(in *input.State) *MMU {
 	return &MMU{
 		Cartridge:      nil,
 		Memory:         memory.New().Init(),
 		Input:          in,
-		IMBus:          imbus,
 		TimerCounter:   0xAC00,
 		TimerLock:      false,
 		SerialReceiver: nil,
@@ -42,7 +39,7 @@ func (m *MMU) Read(address uint16) byte {
 	case address == addr.IE:
 		return m.Memory.IE
 	case address == addr.IF:
-		return getUnusedBitsIO(addr.IF) | m.IMBus.IF
+		return getUnusedBitsIO(addr.IF) | m.Memory.IF
 	case address == addr.DIV:
 		return byte((m.TimerCounter & 0xFF00) >> 8)
 	case address == addr.JOYP:
@@ -79,7 +76,7 @@ func (m *MMU) Write(address uint16, v byte) {
 	case address == addr.IE:
 		m.Memory.IE = v
 	case address == addr.IF:
-		m.IMBus.IF = v & ^getUnusedBitsIO(addr.IF)
+		m.Memory.IF = v & ^getUnusedBitsIO(addr.IF)
 	case address == addr.DIV:
 		m.ResetTimer()
 	case inRange(address, addr.MemAudioBegin, addr.MemAudioEnd):
@@ -105,6 +102,10 @@ func (m *MMU) Write(address uint16, v byte) {
 	}
 }
 
+func (m *MMU) RequestInterrupt(typ addr.InterruptType) {
+	m.Write(addr.IF, bits.Set(m.Read(addr.IF), byte(typ)))
+}
+
 func (m *MMU) CheckLYCLY() {
 	ly := m.Read(addr.LY)
 	lyc := m.Read(addr.LYC)
@@ -114,7 +115,7 @@ func (m *MMU) CheckLYCLY() {
 		stat = bits.Set(stat, addr.STAT_COINCIDENCE_FLAG)
 
 		if bits.Test(stat, addr.STAT_LYCLY_INTERRUPT_ENABLE) {
-			m.IMBus.Request(interrupt_bus.LCD)
+			m.RequestInterrupt(addr.InterruptLCD)
 		}
 	} else {
 		stat = bits.Reset(stat, addr.STAT_COINCIDENCE_FLAG)

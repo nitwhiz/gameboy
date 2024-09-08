@@ -4,22 +4,21 @@ import (
 	"github.com/nitwhiz/gameboy/pkg/addr"
 	"github.com/nitwhiz/gameboy/pkg/bits"
 	"github.com/nitwhiz/gameboy/pkg/cpu"
-	"github.com/nitwhiz/gameboy/pkg/interrupt_bus"
 	"github.com/nitwhiz/gameboy/pkg/mmu"
 	"github.com/nitwhiz/gameboy/pkg/stack"
 )
 
-func GetISR(i interrupt_bus.Type) uint16 {
+func GetISR(i addr.InterruptType) uint16 {
 	switch i {
-	case interrupt_bus.VBlank:
+	case addr.InterruptVBlank:
 		return addr.ISRVBlank
-	case interrupt_bus.LCD:
+	case addr.InterruptLCD:
 		return addr.ISRLCD
-	case interrupt_bus.Timer:
+	case addr.InterruptTimer:
 		return addr.ISRTimer
-	case interrupt_bus.Serial:
+	case addr.InterruptSerial:
 		return addr.ISRSerial
-	case interrupt_bus.Joypad:
+	case addr.InterruptJoypad:
 		return addr.ISRJoypad
 	default:
 		panic("missing interrupt type")
@@ -27,9 +26,8 @@ func GetISR(i interrupt_bus.Type) uint16 {
 }
 
 type Manager struct {
-	CPU   *cpu.CPU
-	MMU   *mmu.MMU
-	IMBus *interrupt_bus.Bus
+	CPU *cpu.CPU
+	MMU *mmu.MMU
 
 	Stack *stack.Stack
 }
@@ -48,7 +46,7 @@ func (m *Manager) Service() (ticks int) {
 		m.CPU.IME = false
 
 		for i := 0; i < 5; i++ {
-			t := interrupt_bus.Type(i)
+			t := addr.InterruptType(i)
 
 			if bits.Test(requested, byte(t)) && bits.Test(enabled, byte(t)) {
 				requested = bits.Reset(requested, byte(t))
