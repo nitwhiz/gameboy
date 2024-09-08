@@ -1,5 +1,7 @@
 package memory
 
+import "github.com/nitwhiz/gameboy/pkg/addr"
+
 type Memory struct {
 	VRAM [0x2000]byte
 	WRAM [0x2000]byte
@@ -24,8 +26,7 @@ func New() *Memory {
 		WRAM: [0x2000]byte{},
 		OAM:  [0x0100]byte{},
 		HRAM: [0x0080]byte{},
-
-		IO: [0x0080]byte{},
+		IO:   [0x0080]byte{},
 
 		IE: 0,
 	}
@@ -134,6 +135,10 @@ func (m *Memory) Init() *Memory {
 	m.IO[0x45] = 0x00
 	m.IO[0x46] = 0xFF
 	m.IO[0x47] = 0xFC
+
+	for i := range m.IO {
+		m.IO[i] |= GetUnusedBits(addr.MemIOBegin + uint16(i))
+	}
 
 	return m
 }

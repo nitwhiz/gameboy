@@ -1,8 +1,8 @@
-package mmu
+package memory
 
 import "github.com/nitwhiz/gameboy/pkg/addr"
 
-func isUnmappedIO(address uint16) bool {
+func IsUnmapped(address uint16) bool {
 	if address < 0xFF03 || address > 0xFF7F {
 		return false
 	}
@@ -26,7 +26,8 @@ func isUnmappedIO(address uint16) bool {
 		address == 0xFF29
 }
 
-func getUnusedBitsIO(address uint16) byte {
+// GetUnusedBits returns a byte with 1's for unused bits
+func GetUnusedBits(address uint16) byte {
 	switch address {
 	case addr.JOYP:
 		return 0b11000000

@@ -39,7 +39,7 @@ func (m *MMU) Read(address uint16) byte {
 	case address == addr.IE:
 		return m.Memory.IE
 	case address == addr.IF:
-		return getUnusedBitsIO(addr.IF) | m.Memory.IF
+		return m.Memory.IF
 	case address == addr.DIV:
 		return byte((m.TimerCounter & 0xFF00) >> 8)
 	case address == addr.JOYP:
@@ -51,19 +51,27 @@ func (m *MMU) Read(address uint16) byte {
 			return v | m.Input.Get(input.SelectDPad)
 		}
 
-		return v | 0x0F
+		return v | 0x0F | memory.GetUnusedBits(addr.JOYP)
 	case inRange(address, addr.MemROMBegin, addr.MemROMEnd):
+		if m.Cartridge == nil {
+			return 0xFF
+		}
+
 		return m.Cartridge.Read(address)
 	case inRange(address, addr.MemVRAMBegin, addr.MemVRAMEnd):
 		return m.Memory.VRAM[address-addr.MemVRAMBegin]
 	case inRange(address, addr.MemCartridgeRAMBegin, addr.MemCartridgeRAMEnd):
+		if m.Cartridge == nil {
+			return 0xFF
+		}
+
 		return m.Cartridge.Read(address)
 	case inRange(address, addr.MemWRAMBegin, addr.MemWRAMEnd):
 		return m.Memory.WRAM[address-addr.MemWRAMBegin]
 	case inRange(address, addr.MemOAMBegin, addr.MemOAMEnd):
 		return m.Memory.OAM[address-addr.MemOAMBegin]
 	case inRange(address, addr.MemIOBegin, addr.MemIOEnd):
-		return getUnusedBitsIO(address) | m.Memory.IO[address-addr.MemIOBegin]
+		return m.Memory.IO[address-addr.MemIOBegin]
 	case inRange(address, addr.MemHRAMBegin, addr.MemHRAMEnd):
 		return m.Memory.HRAM[address-addr.MemHRAMBegin]
 	default:
@@ -76,7 +84,7 @@ func (m *MMU) Write(address uint16, v byte) {
 	case address == addr.IE:
 		m.Memory.IE = v
 	case address == addr.IF:
-		m.Memory.IF = v & ^getUnusedBitsIO(addr.IF)
+		m.Memory.IF = v | memory.GetUnusedBits(addr.IF)
 	case address == addr.DIV:
 		m.ResetTimer()
 	case inRange(address, addr.MemAudioBegin, addr.MemAudioEnd):
@@ -125,11 +133,11 @@ func (m *MMU) CheckLYCLY() {
 }
 
 func (m *MMU) writeIO(address uint16, v byte) {
-	if isUnmappedIO(address) {
+	if memory.IsUnmapped(address) {
 		return
 	}
 
-	v &= ^getUnusedBitsIO(address)
+	v |= memory.GetUnusedBits(address)
 
 	switch {
 	case address == addr.JOYP:
