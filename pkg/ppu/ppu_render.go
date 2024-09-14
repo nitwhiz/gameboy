@@ -188,13 +188,7 @@ func (p *PPU) renderSprites(lcdc byte, ly byte) {
 
 			col := p.getColor(colNum, pal)
 
-			prioByte := byte(0)
-
-			if bgPriority {
-				prioByte = 1
-			}
-
-			p.Screen.SetSprite(byte(pixel), byte(scanline), prioByte, colNum, col)
+			p.Screen.SetSprite(byte(pixel), byte(scanline), bgPriority, colNum, col)
 		}
 	}
 }

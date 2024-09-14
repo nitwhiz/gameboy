@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
-	"time"
 )
 
 func eachRom(root string, cb func(romFile string)) error {
@@ -70,7 +69,6 @@ var testTemplate = template.Must(template.New("testRoms").
 {{ end -}}
 
 // Do not edit. This is auto-generated.
-// Timestamp: {{ .Timestamp }}
 
 package integration
 
@@ -115,7 +113,6 @@ var benchTemplate = template.Must(template.New("benchRoms").
 {{ end -}}
 
 // Do not edit. This is auto-generated.
-// Timestamp: {{ .Timestamp }}
 
 package integration
 
@@ -240,13 +237,11 @@ func main() {
 		}
 
 		err = testTemplate.Execute(f, struct {
-			Timestamp string
-			Roms      *testCase
-			Name      string
+			Roms *testCase
+			Name string
 		}{
-			Timestamp: time.Now().UTC().Format(time.RFC3339),
-			Roms:      tree,
-			Name:      rc.Name,
+			Roms: tree,
+			Name: rc.Name,
 		})
 
 		if err != nil {
@@ -281,13 +276,11 @@ func main() {
 		}
 
 		err = benchTemplate.Execute(f, struct {
-			Timestamp string
-			Roms      *testCase
-			Name      string
+			Roms *testCase
+			Name string
 		}{
-			Timestamp: time.Now().UTC().Format(time.RFC3339),
-			Roms:      tree,
-			Name:      rc.Name,
+			Roms: tree,
+			Name: rc.Name,
 		})
 
 		if err != nil {

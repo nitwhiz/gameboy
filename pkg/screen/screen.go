@@ -30,13 +30,18 @@ func (s *Screen) SetBackground(x, y, colNum, color byte) {
 	s.Background[int(x)+int(y)*Width] = uint16(color) | ((uint16(colNum) | (1 << 2)) << 8)
 }
 
-func (s *Screen) SetSprite(x, y, priority, colNum, color byte) {
+func (s *Screen) SetSprite(x, y byte, priority bool, colNum, color byte) {
 	if colNum == 0 {
 		return
 	}
 
-	s.Sprite[int(x)+int(y)*Width] = uint16(color) |
-		((uint16(colNum) | (uint16(priority) << 2) | (1 << 3)) << 8)
+	info := uint16(colNum) | (1 << 3)
+
+	if priority {
+		info |= 1 << 2
+	}
+
+	s.Sprite[int(x)+int(y)*Width] = uint16(color) | (info << 8)
 }
 
 func (s *Screen) ClearScanline(y byte) {

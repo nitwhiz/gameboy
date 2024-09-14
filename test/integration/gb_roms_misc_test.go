@@ -1,5 +1,4 @@
 // Do not edit. This is auto-generated.
-// Timestamp: 2024-09-08T14:54:06Z
 
 package integration
 

@@ -4,7 +4,7 @@ GO := docker run --rm -v $(PWD):/source --workdir=/source golang:$(GO_IMAGE_TAG)
 
 .PHONY: clean
 clean:
-	rm -rf /roms/mooneye
+	rm -rf ./roms/mooneye
 
 .PHONY: mooneye_test_roms
 mooneye_test_roms:
