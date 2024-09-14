@@ -70,7 +70,7 @@ func addADDHandlers() {
 		return instAdd(g.CPU, g.Fetch8(), false) + 4
 	})
 
-	// ADD SP , e8
+	// ADD SP, e8
 	h.add(0xE8, func(g *gb.GameBoy) (ticks byte) {
 		return instAdd16Signed(g.CPU, g.CPU.SP, g.CPU.SP, int8(g.Fetch8())) + 4
 	})

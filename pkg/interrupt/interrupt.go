@@ -8,22 +8,21 @@ import (
 	"github.com/nitwhiz/gameboy/pkg/stack"
 )
 
-type Type byte
-
-const (
-	VBlank = Type(0)
-	LCD    = Type(1)
-	Timer  = Type(2)
-	Serial = Type(3)
-	Joypad = Type(4)
-)
-
-var isrTable = map[Type]uint16{
-	VBlank: addr.ISRVBlank,
-	LCD:    addr.ISRLCD,
-	Timer:  addr.ISRTimer,
-	Serial: addr.ISRSerial,
-	Joypad: addr.ISRJoypad,
+func GetISR(i addr.InterruptType) uint16 {
+	switch i {
+	case addr.InterruptVBlank:
+		return addr.ISRVBlank
+	case addr.InterruptLCD:
+		return addr.ISRLCD
+	case addr.InterruptTimer:
+		return addr.ISRTimer
+	case addr.InterruptSerial:
+		return addr.ISRSerial
+	case addr.InterruptJoypad:
+		return addr.ISRJoypad
+	default:
+		panic("missing interrupt type")
+	}
 }
 
 type Manager struct {
@@ -31,10 +30,6 @@ type Manager struct {
 	MMU *mmu.MMU
 
 	Stack *stack.Stack
-}
-
-func (m *Manager) Request(t Type) {
-	m.MMU.Write(addr.IF, bits.Set(m.MMU.Read(addr.IF), byte(t)))
 }
 
 func (m *Manager) Service() (ticks int) {
@@ -51,14 +46,14 @@ func (m *Manager) Service() (ticks int) {
 		m.CPU.IME = false
 
 		for i := 0; i < 5; i++ {
-			t := Type(i)
+			t := addr.InterruptType(i)
 
 			if bits.Test(requested, byte(t)) && bits.Test(enabled, byte(t)) {
 				requested = bits.Reset(requested, byte(t))
 				m.MMU.Write(addr.IF, requested)
 
 				m.Stack.Push(m.CPU.PC.Val())
-				m.CPU.PC.Set(isrTable[t])
+				m.CPU.PC.Set(GetISR(t))
 
 				return 20
 			}

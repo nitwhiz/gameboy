@@ -1,8 +1,10 @@
 package inst
 
 import (
+	"fmt"
 	"github.com/nitwhiz/gameboy/pkg/gb"
-	"log"
+	"log/slog"
+	"sync"
 )
 
 type handler func(g *gb.GameBoy) (ticks byte)
@@ -15,9 +17,12 @@ var h = &table{}
 // p - prefixed instruction handler table
 var p = &table{}
 
+var initialized = false
+var initLock = &sync.Mutex{}
+
 func (i *table) add(code byte, inst handler) {
 	if foundI := i[code]; foundI != nil {
-		log.Printf("code %2X is already defined\n", code)
+		slog.Warn("code is already defined", "code", fmt.Sprintf("%2X", code))
 		return
 	}
 
@@ -40,6 +45,13 @@ func (i *table) executeNextOpcode(g *gb.GameBoy) (ticks byte) {
 }
 
 func InitHandlers() {
+	initLock.Lock()
+	defer initLock.Unlock()
+
+	if initialized {
+		return
+	}
+
 	addADDHandlers()
 	addADCHandlers()
 	addINCHandlers()
@@ -70,6 +82,8 @@ func InitHandlers() {
 	addBitInstructions()
 
 	initPHandlers()
+
+	initialized = true
 }
 
 // ExecuteNextOpcode executes the next opcode.

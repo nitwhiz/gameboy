@@ -1,2 +1,5 @@
 .idea/
 testdata/roms/custom
+testdata/roms/mooneye
+testdata/output
+testdata/benchmarks

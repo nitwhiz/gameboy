@@ -13,6 +13,7 @@ type MBC1 struct {
 
 	Bank1      byte
 	Bank1Width byte
+	Bank1Mask  byte
 	Bank2      byte
 	Mode       byte
 
@@ -23,18 +24,19 @@ type MBC1 struct {
 	HasRAM     bool
 }
 
+func isM1(rom []byte, romSize int) bool {
+	return romSize >= 0x44000 && slices.Equal(rom[0x104:0x104+0x30], rom[0x40104:0x40104+0x30])
+}
+
 func NewMBC1(data []byte, romSize int, ramSize int) *MBC1 {
 	rom := make([]byte, romSize)
 	ram := make([]byte, ramSize)
 
 	copy(rom, data)
 
-	romBankMask := bits.GetAllOnes(bits.GetCountIn(romSize/0x4000) - 1)
-	ramBankMask := bits.GetAllOnes(bits.GetCountIn(ramSize/0x2000) - 1)
-
 	bank1Width := byte(5)
 
-	if romSize >= 0x44000 && slices.Equal(rom[0x104:0x104+0x30], rom[0x40104:0x40104+0x30]) {
+	if isM1(rom, romSize) {
 		bank1Width = 4
 	}
 
@@ -44,9 +46,10 @@ func NewMBC1(data []byte, romSize int, ramSize int) *MBC1 {
 		Bank1:       1,
 		Bank2:       0,
 		Bank1Width:  bank1Width,
+		Bank1Mask:   bits.GetMaskByWidth(bank1Width),
 		Mode:        0,
-		RomBankMask: romBankMask,
-		RamBankMask: ramBankMask,
+		RomBankMask: bits.GetMaskByValue(romSize/0x4000 - 1),
+		RamBankMask: bits.GetMaskByValue(ramSize/0x2000 - 1),
 		RAMEnabled:  false,
 		HasRAM:      ramSize > 0,
 	}
@@ -108,7 +111,7 @@ func (c *MBC1) WriteROM(address uint16, v byte) {
 			b = 1
 		}
 
-		c.Bank1 = (b << (8 - c.Bank1Width)) >> (8 - c.Bank1Width)
+		c.Bank1 = b & c.Bank1Mask
 	case address < 0x6000:
 		// Bank2
 

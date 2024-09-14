@@ -1,6 +1,52 @@
 package bits
 
-import "math"
+import "github.com/nitwhiz/gameboy/pkg/addr"
+
+var bitMasks = map[byte]byte{
+	1:   0b1,
+	3:   0b11,
+	7:   0b111,
+	15:  0b1111,
+	31:  0b11111,
+	63:  0b111111,
+	127: 0b1111111,
+	255: 0b11111111,
+}
+
+func GetMaskByValue(v int) byte {
+	if v == 0 {
+		return 0
+	}
+
+	if v > 255 {
+		return 0b11111111
+	}
+
+	x := byte(2)
+
+	for v > 1 {
+		v /= 2
+		x *= 2
+	}
+
+	m, ok := bitMasks[x-1]
+
+	if !ok {
+		return 0
+	}
+
+	return m
+}
+
+func GetMaskByWidth(n byte) byte {
+	m := byte(0)
+
+	for i := range n {
+		m |= 1 << i
+	}
+
+	return m
+}
 
 // IsTACEnabled returns the status of bit 2 of addr.TAC
 func IsTACEnabled(tac byte) bool {
@@ -20,14 +66,6 @@ func IsLCDEnabled(lcdc byte) bool {
 // GetPPUMode returns bits 0, 1 of addr.STAT
 func GetPPUMode(stat byte) byte {
 	return stat & 0b11
-}
-
-func SetLYCLY(stat byte, v bool) byte {
-	if v {
-		return Set(stat, 2)
-	}
-
-	return Reset(stat, 2)
 }
 
 func IsLCDModeSelect(stat byte, mode byte) bool {
@@ -58,8 +96,16 @@ func IsLCDWindowEnabled(lcdc byte) bool {
 	return Test(lcdc, 5)
 }
 
-func OAMAttributes(attributes byte) (xFlip, yFlip, priority bool) {
-	return Test(attributes, 5), Test(attributes, 6), Test(attributes, 7)
+func OAMAttributes(attributes byte) (xFlip, yFlip, bgPriority bool, palette uint16) {
+	palette = addr.OBP0
+
+	if Test(attributes, addr.OAM_ATTR_PALETTE) {
+		palette = addr.OBP1
+	}
+
+	return Test(attributes, addr.OAM_ATTR_X_FLIP),
+		Test(attributes, addr.OAM_ATTR_Y_FLIP),
+		Test(attributes, addr.OAM_ATTR_PRIORITY), palette
 }
 
 func IsJOYPSelectButtons(joyp byte) bool {
@@ -68,20 +114,4 @@ func IsJOYPSelectButtons(joyp byte) bool {
 
 func IsJOYPSelectDPad(joyp byte) bool {
 	return !Test(joyp, 4)
-}
-
-func GetCountIn(v int) int {
-	return int(math.Log2(float64(v))) + 1
-}
-
-func GetAllOnes(count int) byte {
-	v := byte(0)
-
-	if count > 0 {
-		for i := 0; i < count; i++ {
-			v |= 1 << i
-		}
-	}
-
-	return v
 }

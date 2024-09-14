@@ -17,7 +17,7 @@ func addControlHandlers() {
 
 		g.Fetch8()
 
-		g.MMU.SetDIV(0)
+		g.MMU.ResetTimer()
 
 		return 4
 	})

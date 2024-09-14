@@ -1,0 +1,29 @@
+name: Integration Test
+
+on: [push]
+
+jobs:
+
+  tests:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - name: Install make
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install make
+
+      - name: Setup Go 1.23.x
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+
+      - name: Build mooneye Test ROMs And Generate Tests
+        run: make generate
+
+      - name: Run Integration Tests
+        run: go test ./test/integration

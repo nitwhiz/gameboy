@@ -11,44 +11,93 @@ const (
 	Pixels = Width * Height
 )
 
-type Data = [Pixels]byte
+type PixelData = [Pixels]byte
+type BackgroundData = [Pixels]uint16
+type SpriteData = [Pixels]uint16
 
 type Screen struct {
-	Background Data
-	Hot        Data
-	Cold       Data
+	Background BackgroundData
+	Sprite     SpriteData
+
+	Buffer PixelData
 }
 
 func New() *Screen {
 	return &Screen{}
 }
 
-func (s *Screen) SetBackground(x, y, v byte) {
-	s.Background[int(x)+int(y)*Width] = v
+func (s *Screen) SetBackground(x, y, colNum, color byte) {
+	s.Background[int(x)+int(y)*Width] = uint16(color) | ((uint16(colNum) | (1 << 2)) << 8)
 }
 
-func (s *Screen) SetPixel(x, y, v byte) {
-	s.Hot[int(x)+int(y)*Width] = v
+func (s *Screen) SetSprite(x, y byte, priority bool, colNum, color byte) {
+	if colNum == 0 {
+		return
+	}
+
+	info := uint16(colNum) | (1 << 3)
+
+	if priority {
+		info |= 1 << 2
+	}
+
+	s.Sprite[int(x)+int(y)*Width] = uint16(color) | (info << 8)
 }
 
-func (s *Screen) GetBackground(x, y byte) byte {
-	return s.Background[int(x)+int(y)*Width]
-}
-
-func (s *Screen) GetPixel(x, y byte) byte {
-	return s.Hot[int(x)+int(y)*Width]
-}
-
-func (s *Screen) Blit() {
-	copy(s.Cold[:], s.Hot[:])
-
-	for i := range Pixels {
-		s.Background[i] = 0
+func (s *Screen) ClearScanline(y byte) {
+	for x := range Width {
+		s.Sprite[x+int(y)*Width] = 0
+		s.Background[x+int(y)*Width] = 0
 	}
 }
 
-func (s *Screen) Display() Data {
-	return s.Cold
+func (s *Screen) GetBackground(x, y byte) uint16 {
+	return s.Background[int(x)+int(y)*Width]
+}
+
+func (s *Screen) GetSprite(x, y byte) uint16 {
+	return s.Sprite[int(x)+int(y)*Width]
+}
+
+func (s *Screen) Display() PixelData {
+	return s.Buffer
+}
+
+func (s *Screen) BlitScanline(y byte) {
+	for x := range Width {
+		background := s.Background[x+int(y)*Width]
+		backgroundColor := byte(background & 0xFF)
+		backgroundInfo := byte((background >> 8) & 0xFF)
+
+		if backgroundInfo&0b100 == 0 {
+			backgroundColor = 0xFF
+		}
+
+		sprite := s.Sprite[x+int(y)*Width]
+		spriteColor := byte(sprite & 0xFF)
+		spriteInfo := byte((sprite >> 8) & 0xFF)
+
+		pixelColor := spriteColor
+
+		if spriteInfo&0b1000 == 0 {
+			// sprite pixel is not defined
+			pixelColor = backgroundColor
+		}
+
+		if spriteInfo&0b11 == 0 {
+			// sprite pixel color num is 0
+			pixelColor = backgroundColor
+		}
+
+		if spriteInfo&0b100 != 0 && backgroundInfo&0b11 != 0 {
+			// priority is 1 and background is not 0
+			pixelColor = backgroundColor
+		}
+
+		s.Buffer[x+int(y)*Width] = pixelColor
+	}
+
+	s.ClearScanline(y)
 }
 
 func (s *Screen) ColorModel() color.Model {
@@ -61,6 +110,6 @@ func (s *Screen) Bounds() image.Rectangle {
 
 func (s *Screen) At(x, y int) color.Color {
 	return color.Gray{
-		Y: s.Cold[x+y*Width],
+		Y: s.Buffer[x+y*Width],
 	}
 }

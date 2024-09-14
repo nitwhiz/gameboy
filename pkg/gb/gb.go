@@ -3,14 +3,13 @@ package gb
 import (
 	"context"
 	"github.com/nitwhiz/gameboy/pkg/cpu"
-	"github.com/nitwhiz/gameboy/pkg/gfx"
 	"github.com/nitwhiz/gameboy/pkg/input"
 	"github.com/nitwhiz/gameboy/pkg/interrupt"
-	"github.com/nitwhiz/gameboy/pkg/memory"
 	"github.com/nitwhiz/gameboy/pkg/mmu"
+	"github.com/nitwhiz/gameboy/pkg/ppu"
 	"github.com/nitwhiz/gameboy/pkg/quarz"
 	"github.com/nitwhiz/gameboy/pkg/stack"
-	"log"
+	"log/slog"
 	"sync"
 )
 
@@ -20,15 +19,13 @@ type GameBoy struct {
 	CPU *cpu.CPU
 	MMU *mmu.MMU
 
+	Timer *quarz.Timer
 	Input *input.State
 
 	IM    *interrupt.Manager
 	Stack *stack.Stack
 
-	GFX *gfx.GFX
-
-	DIVTimerTicks  *quarz.TickCounter[float64]
-	TIMATimerTicks *quarz.TickCounter[float64]
+	PPU *ppu.PPU
 
 	ExecuteNextOpcodeFunc ExecuteNextOpcodeFunc
 
@@ -42,36 +39,32 @@ func New(options ...GameBoyOption) (*GameBoy, error) {
 
 	in := input.NewState()
 
-	m := mmu.MMU{
-		Cartridge:      nil,
-		Memory:         memory.New().Init(),
-		Input:          in,
-		SerialReceiver: nil,
-	}
+	m := mmu.New(in)
 
 	s := stack.Stack{
 		CPU: c,
-		MMU: &m,
+		MMU: m,
 	}
+
+	t := quarz.NewTimer(m)
 
 	i := interrupt.Manager{
 		CPU:   c,
-		MMU:   &m,
+		MMU:   m,
 		Stack: &s,
 	}
 
-	g := gfx.New(&m, &i)
+	g := ppu.New(m)
 
 	gameBoy := GameBoy{
-		CPU:            c,
-		MMU:            &m,
-		Input:          in,
-		Stack:          &s,
-		IM:             &i,
-		GFX:            g,
-		DIVTimerTicks:  quarz.NewTickCounter[float64](1),
-		TIMATimerTicks: quarz.NewTickCounter[float64](1),
-		mu:             &sync.Mutex{},
+		CPU:   c,
+		MMU:   m,
+		Timer: t,
+		Input: in,
+		Stack: &s,
+		IM:    &i,
+		PPU:   g,
+		mu:    &sync.Mutex{},
 	}
 
 	for _, o := range options {
@@ -96,7 +89,7 @@ func (g *GameBoy) Update(ctx context.Context) {
 	defer g.mu.Unlock()
 
 	if g.MMU.Cartridge == nil {
-		log.Println("missing cartridge, update skipped")
+		slog.Warn("missing cartridge, update skipped")
 		return
 	}
 
@@ -126,8 +119,8 @@ func (g *GameBoy) Update(ctx context.Context) {
 			}
 		}
 
-		g.TickTimers(ticks)
-		g.UpdateGFX(ticks)
+		g.Timer.Tick(ticks)
+		g.PPU.Update(ticks)
 
 		executedTicks += ticks
 	}
