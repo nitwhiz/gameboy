@@ -2,5 +2,6 @@
 testdata/roms/custom
 testdata/roms/mooneye
 testdata/output
+testdata/benchmarks/baseline.new.txt
 testdata/benchmarks/latest.txt
 testdata/benchmakrs/delta.txt
