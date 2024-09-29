@@ -1,5 +1,5 @@
 PWD := $(shell pwd)
-GO_IMAGE_TAG := 1.23.0-alpine
+GO_IMAGE_TAG := 1.23.1-alpine
 GO := docker run --rm -v $(PWD):/source --workdir=/source golang:$(GO_IMAGE_TAG) go
 
 .PHONY: clean
@@ -17,3 +17,15 @@ go_generate:
 
 .PHONY: generate
 generate: clean mooneye_test_roms go_generate
+
+.PHONY: benchmark_baseline
+benchmark_baseline:
+	mkdir -p testdata/benchmarks
+	$(GO) test -count=10 -run='^$$' -bench=. ./... > testdata/benchmarks/baseline.txt
+
+.PHONY: benchmark
+benchmark:
+	mkdir -p testdata/benchmarks
+	$(GO) test -count=10 -run='^$$' -bench=. ./... > testdata/benchmarks/latest.txt
+	docker build --tag benchstat docker/benchstat
+	docker run --rm -v $(PWD):/source --workdir=/source benchstat testdata/benchmarks/baseline.txt testdata/benchmarks/latest.txt

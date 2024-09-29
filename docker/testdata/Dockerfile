@@ -3,7 +3,7 @@ FROM debian:bookworm AS base
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update && \
-    apt-get --no-install-recommends install -y \
+    apt-get install -qq --no-install-recommends \
       build-essential \
       cmake  \
       ca-certificates  \
