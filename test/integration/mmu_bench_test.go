@@ -12,7 +12,7 @@ import (
 var lastReadResult byte
 
 func randomizedMemory() *memory.Memory {
-	m := memory.New().Init()
+	m := memory.New()
 
 	for i := 0; i < len(m.VRAM); i++ {
 		m.VRAM[i] = byte(rand.Uint())
@@ -42,7 +42,6 @@ func getTestData() (*mmu.MMU, []byte) {
 		Cartridge:      nil,
 		Memory:         randomizedMemory(),
 		Input:          input.NewState(),
-		TimerCounter:   0,
 		TimerLock:      false,
 		SerialReceiver: nil,
 	}
@@ -112,13 +111,17 @@ func testRead(b *testing.B) {
 }
 
 func BenchmarkMMUWrite(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		testWrite(b)
-	}
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			testWrite(b)
+		}
+	})
 }
 
 func BenchmarkMMURead(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		testRead(b)
-	}
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			testRead(b)
+		}
+	})
 }

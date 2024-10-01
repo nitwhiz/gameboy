@@ -1,8 +1,7 @@
-package inst
+package gb
 
 import (
 	"github.com/nitwhiz/gameboy/pkg/cpu"
-	"github.com/nitwhiz/gameboy/pkg/gb"
 )
 
 func instAdd(c *cpu.CPU, val byte, carry bool) (ticks byte) {
@@ -193,12 +192,12 @@ func instXor(c *cpu.CPU, val byte) (ticks byte) {
 	return 4
 }
 
-func instJr(g *gb.GameBoy, rel byte) (ticks byte) {
+func instJr(g *GameBoy, rel byte) (ticks byte) {
 	g.CPU.PC.Set(uint16(int32(g.CPU.PC.Val()) + int32(int8(rel))))
 	return 8
 }
 
-func instJrCond(g *gb.GameBoy, flag cpu.Flag, cond bool) (ticks byte) {
+func instJrCond(g *GameBoy, flag cpu.Flag, cond bool) (ticks byte) {
 	rel := g.Fetch8()
 
 	if g.CPU.Flag(flag) == cond {
@@ -208,12 +207,12 @@ func instJrCond(g *gb.GameBoy, flag cpu.Flag, cond bool) (ticks byte) {
 	return 8
 }
 
-func instJp(g *gb.GameBoy, addr uint16) (ticks byte) {
+func instJp(g *GameBoy, addr uint16) (ticks byte) {
 	g.CPU.PC.Set(addr)
 	return 4
 }
 
-func instJpCond(g *gb.GameBoy, flag cpu.Flag, cond bool) (ticks byte) {
+func instJpCond(g *GameBoy, flag cpu.Flag, cond bool) (ticks byte) {
 	rel := g.Fetch16()
 
 	if g.CPU.Flag(flag) == cond {
@@ -223,14 +222,14 @@ func instJpCond(g *gb.GameBoy, flag cpu.Flag, cond bool) (ticks byte) {
 	return 12
 }
 
-func instCall(g *gb.GameBoy, addr uint16) (ticks byte) {
+func instCall(g *GameBoy, addr uint16) (ticks byte) {
 	g.Stack.Push(g.CPU.PC.Val())
 	g.CPU.PC.Set(addr)
 
 	return 16
 }
 
-func instCallCond(g *gb.GameBoy, flag cpu.Flag, cond bool) (ticks byte) {
+func instCallCond(g *GameBoy, flag cpu.Flag, cond bool) (ticks byte) {
 	addr := g.Fetch16()
 
 	if g.CPU.Flag(flag) == cond {
@@ -240,13 +239,13 @@ func instCallCond(g *gb.GameBoy, flag cpu.Flag, cond bool) (ticks byte) {
 	return 12
 }
 
-func instRet(g *gb.GameBoy) (ticks byte) {
+func instRet(g *GameBoy) (ticks byte) {
 	g.CPU.PC.Set(g.Stack.Pop())
 
 	return 8
 }
 
-func instRetCond(g *gb.GameBoy, flag cpu.Flag, cond bool) (ticks byte) {
+func instRetCond(g *GameBoy, flag cpu.Flag, cond bool) (ticks byte) {
 	if g.CPU.Flag(flag) == cond {
 		return instRet(g) + 12
 	}

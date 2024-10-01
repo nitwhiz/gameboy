@@ -1,69 +1,68 @@
-package inst
+package gb
 
 import (
 	"github.com/nitwhiz/gameboy/pkg/bits"
 	"github.com/nitwhiz/gameboy/pkg/cpu"
-	"github.com/nitwhiz/gameboy/pkg/gb"
 )
 
 func initPHandlers() {
-	getters := [8]func(g *gb.GameBoy) (result byte, ticks byte){
-		func(g *gb.GameBoy) (result byte, ticks byte) {
+	getters := [8]func(g *GameBoy) (result byte, ticks byte){
+		func(g *GameBoy) (result byte, ticks byte) {
 			return g.CPU.BC.Hi(), 4
 		},
-		func(g *gb.GameBoy) (result byte, ticks byte) {
+		func(g *GameBoy) (result byte, ticks byte) {
 			return g.CPU.BC.Lo(), 4
 		},
-		func(g *gb.GameBoy) (result byte, ticks byte) {
+		func(g *GameBoy) (result byte, ticks byte) {
 			return g.CPU.DE.Hi(), 4
 		},
-		func(g *gb.GameBoy) (result byte, ticks byte) {
+		func(g *GameBoy) (result byte, ticks byte) {
 			return g.CPU.DE.Lo(), 4
 		},
-		func(g *gb.GameBoy) (result byte, ticks byte) {
+		func(g *GameBoy) (result byte, ticks byte) {
 			return g.CPU.HL.Hi(), 4
 		},
-		func(g *gb.GameBoy) (result byte, ticks byte) {
+		func(g *GameBoy) (result byte, ticks byte) {
 			return g.CPU.HL.Lo(), 4
 		},
-		func(g *gb.GameBoy) (result byte, ticks byte) {
+		func(g *GameBoy) (result byte, ticks byte) {
 			return g.MMU.Read(g.CPU.HL.Val()), 8
 		},
-		func(g *gb.GameBoy) (result byte, ticks byte) {
+		func(g *GameBoy) (result byte, ticks byte) {
 			return g.CPU.AF.Hi(), 4
 		},
 	}
 
-	setters := [8]func(g *gb.GameBoy, val byte) (ticks byte){
-		func(g *gb.GameBoy, val byte) (ticks byte) {
+	setters := [8]func(g *GameBoy, val byte) (ticks byte){
+		func(g *GameBoy, val byte) (ticks byte) {
 			g.CPU.BC.SetHi(val)
 			return 4
 		},
-		func(g *gb.GameBoy, val byte) (ticks byte) {
+		func(g *GameBoy, val byte) (ticks byte) {
 			g.CPU.BC.SetLo(val)
 			return 4
 		},
-		func(g *gb.GameBoy, val byte) (ticks byte) {
+		func(g *GameBoy, val byte) (ticks byte) {
 			g.CPU.DE.SetHi(val)
 			return 4
 		},
-		func(g *gb.GameBoy, val byte) (ticks byte) {
+		func(g *GameBoy, val byte) (ticks byte) {
 			g.CPU.DE.SetLo(val)
 			return 4
 		},
-		func(g *gb.GameBoy, val byte) (ticks byte) {
+		func(g *GameBoy, val byte) (ticks byte) {
 			g.CPU.HL.SetHi(val)
 			return 4
 		},
-		func(g *gb.GameBoy, val byte) (ticks byte) {
+		func(g *GameBoy, val byte) (ticks byte) {
 			g.CPU.HL.SetLo(val)
 			return 4
 		},
-		func(g *gb.GameBoy, val byte) (ticks byte) {
+		func(g *GameBoy, val byte) (ticks byte) {
 			g.MMU.Write(g.CPU.HL.Val(), val)
 			return 8
 		},
-		func(g *gb.GameBoy, val byte) (ticks byte) {
+		func(g *GameBoy, val byte) (ticks byte) {
 			g.CPU.AF.SetHi(val)
 			return 4
 		},
@@ -73,7 +72,7 @@ func initPHandlers() {
 		i := x
 
 		// RLC
-		p.add(0x00+i, func(g *gb.GameBoy) (ticks byte) {
+		p.add(0x00+i, func(g *GameBoy) (ticks byte) {
 			val, getTicks := getters[i](g)
 
 			carry := val >> 7
@@ -90,7 +89,7 @@ func initPHandlers() {
 		})
 
 		// RRC
-		p.add(0x08+i, func(g *gb.GameBoy) (ticks byte) {
+		p.add(0x08+i, func(g *GameBoy) (ticks byte) {
 			val, getTicks := getters[i](g)
 
 			carry := val & 1
@@ -107,7 +106,7 @@ func initPHandlers() {
 		})
 
 		// RL
-		p.add(0x10+i, func(g *gb.GameBoy) (ticks byte) {
+		p.add(0x10+i, func(g *GameBoy) (ticks byte) {
 			val, getTicks := getters[i](g)
 
 			carry := val >> 7
@@ -130,7 +129,7 @@ func initPHandlers() {
 		})
 
 		// RR
-		p.add(0x18+i, func(g *gb.GameBoy) (ticks byte) {
+		p.add(0x18+i, func(g *GameBoy) (ticks byte) {
 			val, getTicks := getters[i](g)
 
 			carry := val & 1
@@ -153,7 +152,7 @@ func initPHandlers() {
 		})
 
 		// SLA
-		p.add(0x20+i, func(g *gb.GameBoy) (ticks byte) {
+		p.add(0x20+i, func(g *GameBoy) (ticks byte) {
 			val, getTicks := getters[i](g)
 
 			carry := val >> 7
@@ -170,7 +169,7 @@ func initPHandlers() {
 		})
 
 		// SRA
-		p.add(0x28+i, func(g *gb.GameBoy) (ticks byte) {
+		p.add(0x28+i, func(g *GameBoy) (ticks byte) {
 			val, getTicks := getters[i](g)
 
 			rot := (val >> 1) | (val & 0x80)
@@ -186,7 +185,7 @@ func initPHandlers() {
 		})
 
 		// SWAP
-		p.add(0x30+i, func(g *gb.GameBoy) (ticks byte) {
+		p.add(0x30+i, func(g *GameBoy) (ticks byte) {
 			val, getTicks := getters[i](g)
 
 			swapped := (val<<4)&0xF0 | (val>>4)&0x0F
@@ -202,7 +201,7 @@ func initPHandlers() {
 		})
 
 		// SRL
-		p.add(0x38+i, func(g *gb.GameBoy) (ticks byte) {
+		p.add(0x38+i, func(g *GameBoy) (ticks byte) {
 			val, getTicks := getters[i](g)
 
 			carry := val & 1
@@ -222,7 +221,7 @@ func initPHandlers() {
 			j := y
 
 			// BIT
-			p.add(0x40+0x08*j+i, func(g *gb.GameBoy) (ticks byte) {
+			p.add(0x40+0x08*j+i, func(g *GameBoy) (ticks byte) {
 				val, ticks := getters[i](g)
 
 				g.CPU.SetFlag(cpu.Z, (val>>j)&1 == 0)
@@ -233,7 +232,7 @@ func initPHandlers() {
 			})
 
 			// RES
-			p.add(0x80+0x08*j+i, func(g *gb.GameBoy) (ticks byte) {
+			p.add(0x80+0x08*j+i, func(g *GameBoy) (ticks byte) {
 				val, getTicks := getters[i](g)
 				setTicks := setters[i](g, bits.Reset(val, j))
 
@@ -241,7 +240,7 @@ func initPHandlers() {
 			})
 
 			// SET
-			p.add(0xC0+0x08*j+i, func(g *gb.GameBoy) (ticks byte) {
+			p.add(0xC0+0x08*j+i, func(g *GameBoy) (ticks byte) {
 				val, getTicks := getters[i](g)
 				setTicks := setters[i](g, bits.Set(val, j))
 

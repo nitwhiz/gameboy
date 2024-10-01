@@ -1,13 +1,12 @@
-package inst
+package gb
 
 import (
 	"github.com/nitwhiz/gameboy/pkg/cpu"
-	"github.com/nitwhiz/gameboy/pkg/gb"
 )
 
 func addBitInstructions() {
 	// RLCA
-	h.add(0x07, func(g *gb.GameBoy) (ticks byte) {
+	h.add(0x07, func(g *GameBoy) (ticks byte) {
 		a := g.CPU.AF.Hi()
 		result := a<<1 | (a >> 7)
 
@@ -22,7 +21,7 @@ func addBitInstructions() {
 	})
 
 	// RLA
-	h.add(0x17, func(g *gb.GameBoy) (ticks byte) {
+	h.add(0x17, func(g *GameBoy) (ticks byte) {
 		a := g.CPU.AF.Hi()
 
 		c := byte(0)
@@ -44,7 +43,7 @@ func addBitInstructions() {
 	})
 
 	// RRCA
-	h.add(0x0F, func(g *gb.GameBoy) (ticks byte) {
+	h.add(0x0F, func(g *GameBoy) (ticks byte) {
 		a := g.CPU.AF.Hi()
 
 		a = a>>1 | (a&1)<<7
@@ -60,7 +59,7 @@ func addBitInstructions() {
 	})
 
 	// RRA
-	h.add(0x1F, func(g *gb.GameBoy) (ticks byte) {
+	h.add(0x1F, func(g *GameBoy) (ticks byte) {
 		a := g.CPU.AF.Hi()
 
 		c := byte(0)
@@ -82,12 +81,12 @@ func addBitInstructions() {
 	})
 
 	// PREFIX
-	h.add(0xCB, func(g *gb.GameBoy) (ticks byte) {
+	h.add(0xCB, func(g *GameBoy) (ticks byte) {
 		return p.executeNextOpcode(g) + 4
 	})
 
 	// DAA
-	h.add(0x27, func(g *gb.GameBoy) (ticks byte) {
+	h.add(0x27, func(g *GameBoy) (ticks byte) {
 		a := g.CPU.AF.Hi()
 
 		if !g.CPU.Flag(cpu.N) {
@@ -117,7 +116,7 @@ func addBitInstructions() {
 	})
 
 	// CCF
-	h.add(0x3F, func(g *gb.GameBoy) (ticks byte) {
+	h.add(0x3F, func(g *GameBoy) (ticks byte) {
 		g.CPU.SetFlag(cpu.C, !g.CPU.Flag(cpu.C))
 
 		g.CPU.SetFlag(cpu.N, false)
@@ -127,7 +126,7 @@ func addBitInstructions() {
 	})
 
 	// CPL
-	h.add(0x2F, func(g *gb.GameBoy) (ticks byte) {
+	h.add(0x2F, func(g *GameBoy) (ticks byte) {
 		g.CPU.AF.SetHi(^g.CPU.AF.Hi())
 
 		g.CPU.SetFlag(cpu.N, true)
@@ -137,7 +136,7 @@ func addBitInstructions() {
 	})
 
 	// SCF
-	h.add(0x37, func(g *gb.GameBoy) (ticks byte) {
+	h.add(0x37, func(g *GameBoy) (ticks byte) {
 		g.CPU.SetFlag(cpu.C, true)
 		g.CPU.SetFlag(cpu.N, false)
 		g.CPU.SetFlag(cpu.H, false)

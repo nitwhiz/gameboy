@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"github.com/nitwhiz/gameboy/pkg/gb"
-	"github.com/nitwhiz/gameboy/pkg/inst"
 	"github.com/nitwhiz/gameboy/pkg/screen"
 	"image"
 	"image/png"
@@ -58,7 +57,6 @@ func newRomBenchmarkCase(b *testing.B, romPath string, expectedScreenshot *image
 			b.StartTimer()
 		}),
 		gb.WithRom(rom),
-		gb.WithExecuteNextOpcodeFunc(inst.ExecuteNextOpcode),
 	)
 
 	if err != nil {
@@ -114,7 +112,7 @@ func (r *romBenchmarkCase) runGameBoy() int {
 }
 
 func runRomBenchmark(b *testing.B, serialOutCallbacks []serialOutCallbackCreator, romPath string, ctx context.Context) {
-	inst.InitHandlers()
+	gb.InitHandlers()
 
 	var serialData []byte
 

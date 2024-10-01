@@ -1,13 +1,13 @@
 ?   	github.com/nitwhiz/gameboy/cmd/gen_tests	[no test files]
 ?   	github.com/nitwhiz/gameboy/pkg/addr	[no test files]
 PASS
-ok  	github.com/nitwhiz/gameboy/pkg/bits	0.014s
+ok  	github.com/nitwhiz/gameboy/pkg/bits	0.003s
 ?   	github.com/nitwhiz/gameboy/pkg/cartridge	[no test files]
 ?   	github.com/nitwhiz/gameboy/pkg/cpu	[no test files]
 ?   	github.com/nitwhiz/gameboy/pkg/gb	[no test files]
 ?   	github.com/nitwhiz/gameboy/pkg/input	[no test files]
 PASS
-ok  	github.com/nitwhiz/gameboy/pkg/inst	0.012s
+ok  	github.com/nitwhiz/gameboy/pkg/inst	0.002s
 ?   	github.com/nitwhiz/gameboy/pkg/interrupt	[no test files]
 ?   	github.com/nitwhiz/gameboy/pkg/memory	[no test files]
 ?   	github.com/nitwhiz/gameboy/pkg/mmu	[no test files]
@@ -18,160 +18,253 @@ ok  	github.com/nitwhiz/gameboy/pkg/inst	0.012s
 goos: linux
 goarch: arm64
 pkg: github.com/nitwhiz/gameboy/test/integration
-BenchmarkAcid2Roms/dmg-acid2/dmg-acid2-2         	      52	  22134885 ns/op	       451.8 fps
+BenchmarkAcid2Roms/dmg-acid2/dmg-acid2-2         	      54	  21627353 ns/op	       462.4 fps
 --- BENCH: BenchmarkAcid2Roms/dmg-acid2/dmg-acid2-2
     helpers_bench.go:175: (no serial data)
     helpers_bench.go:175: (no serial data)
-BenchmarkAcid2Roms/dmg-acid2/dmg-acid2-2         	      54	  21860420 ns/op	       457.4 fps
+BenchmarkAcid2Roms/dmg-acid2/dmg-acid2-2         	      55	  21632779 ns/op	       462.3 fps
 --- BENCH: BenchmarkAcid2Roms/dmg-acid2/dmg-acid2-2
     helpers_bench.go:175: (no serial data)
     helpers_bench.go:175: (no serial data)
-BenchmarkAcid2Roms/dmg-acid2/dmg-acid2-2         	      54	  21848203 ns/op	       457.7 fps
+BenchmarkAcid2Roms/dmg-acid2/dmg-acid2-2         	      55	  21648581 ns/op	       461.9 fps
 --- BENCH: BenchmarkAcid2Roms/dmg-acid2/dmg-acid2-2
     helpers_bench.go:175: (no serial data)
     helpers_bench.go:175: (no serial data)
-BenchmarkAcid2Roms/dmg-acid2/dmg-acid2-2         	      54	  21848715 ns/op	       457.7 fps
+BenchmarkAcid2Roms/dmg-acid2/dmg-acid2-2         	      55	  21599584 ns/op	       463.0 fps
 --- BENCH: BenchmarkAcid2Roms/dmg-acid2/dmg-acid2-2
     helpers_bench.go:175: (no serial data)
     helpers_bench.go:175: (no serial data)
-BenchmarkAcid2Roms/dmg-acid2/dmg-acid2-2         	      54	  21829202 ns/op	       458.1 fps
+BenchmarkAcid2Roms/dmg-acid2/dmg-acid2-2         	      55	  21619868 ns/op	       462.5 fps
 --- BENCH: BenchmarkAcid2Roms/dmg-acid2/dmg-acid2-2
     helpers_bench.go:175: (no serial data)
     helpers_bench.go:175: (no serial data)
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/cpu_instrs-2         	       1	4690794856 ns/op	       687.1 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/cpu_instrs-2         	       1	4685312336 ns/op	       687.9 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/cpu_instrs-2         	       1	4695451982 ns/op	       686.4 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/cpu_instrs-2         	       1	4678918818 ns/op	       688.8 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/cpu_instrs-2         	       1	4687701718 ns/op	       687.5 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/01-special-2         	       5	 231754461 ns/op	       642.9 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/01-special-2         	       5	 231972233 ns/op	       642.3 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/01-special-2         	       5	 231891226 ns/op	       642.5 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/01-special-2         	       5	 231861313 ns/op	       642.6 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/01-special-2         	       5	 232845574 ns/op	       639.9 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/02-interrupts-2      	      31	  37195986 ns/op	       699.0 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/02-interrupts-2      	      31	  37377289 ns/op	       695.6 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/02-interrupts-2      	      31	  37353712 ns/op	       696.0 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/02-interrupts-2      	      31	  37548651 ns/op	       692.4 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/02-interrupts-2      	      31	  37309445 ns/op	       696.9 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/03-op_sp,hl-2        	       5	 204398512 ns/op	       694.7 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/03-op_sp,hl-2        	       5	 204946304 ns/op	       692.9 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/03-op_sp,hl-2        	       5	 204125006 ns/op	       695.7 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/03-op_sp,hl-2        	       5	 204226086 ns/op	       695.3 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/03-op_sp,hl-2        	       5	 204043491 ns/op	       695.9 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/04-op_r,imm-2        	       5	 238541868 ns/op	       691.7 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/04-op_r,imm-2        	       5	 239739133 ns/op	       688.2 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/04-op_r,imm-2        	       5	 238524898 ns/op	       691.8 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/04-op_r,imm-2        	       5	 238294261 ns/op	       692.4 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/04-op_r,imm-2        	       5	 239251568 ns/op	       689.7 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/05-op_rp-2           	       4	 329993103 ns/op	       684.9 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/05-op_rp-2           	       4	 330660150 ns/op	       683.5 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/05-op_rp-2           	       4	 329107318 ns/op	       686.7 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/05-op_rp-2           	       4	 328735140 ns/op	       687.5 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/05-op_rp-2           	       4	 329707529 ns/op	       685.5 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/06-ld_r,r-2          	      22	  50819324 ns/op	       688.7 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/06-ld_r,r-2          	      22	  50570776 ns/op	       692.1 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/06-ld_r,r-2          	      22	  50715838 ns/op	       690.1 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/06-ld_r,r-2          	      22	  50775629 ns/op	       689.3 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/06-ld_r,r-2          	      22	  50587191 ns/op	       691.9 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/07-jr,jp,call,ret,rst-2         	      18	  61872665 ns/op	       695.0 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/07-jr,jp,call,ret,rst-2         	      19	  61751841 ns/op	       696.3 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/07-jr,jp,call,ret,rst-2         	      19	  61583743 ns/op	       698.2 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/07-jr,jp,call,ret,rst-2         	      19	  61616751 ns/op	       697.9 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/07-jr,jp,call,ret,rst-2         	      19	  61575870 ns/op	       698.3 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/08-misc_instrs-2                	      24	  47530595 ns/op	       694.3 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/08-misc_instrs-2                	      24	  47633093 ns/op	       692.8 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/08-misc_instrs-2                	      24	  47883549 ns/op	       689.2 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/08-misc_instrs-2                	      24	  47569850 ns/op	       693.7 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/08-misc_instrs-2                	      24	  47743647 ns/op	       691.2 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/09-op_r,r-2                     	       2	 812275336 ns/op	       677.1 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/09-op_r,r-2                     	       2	 809140984 ns/op	       679.7 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/09-op_r,r-2                     	       2	 809558834 ns/op	       679.4 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/09-op_r,r-2                     	       2	 813440694 ns/op	       676.1 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/09-op_r,r-2                     	       2	 815136492 ns/op	       674.7 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/10-bit_ops-2                    	       1	1243249414 ns/op	       673.2 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/10-bit_ops-2                    	       1	1234268550 ns/op	       678.1 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/10-bit_ops-2                    	       1	1238207120 ns/op	       676.0 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/10-bit_ops-2                    	       1	1242098724 ns/op	       673.9 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/10-bit_ops-2                    	       1	1236548001 ns/op	       676.9 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/11-op_a,(hl)-2                  	       1	1474696786 ns/op	       717.4 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/11-op_a,(hl)-2                  	       1	1471490003 ns/op	       719.0 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/11-op_a,(hl)-2                  	       1	1472190912 ns/op	       718.7 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/11-op_a,(hl)-2                  	       1	1489100629 ns/op	       710.5 fps
-BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/11-op_a,(hl)-2                  	       1	1473920905 ns/op	       717.8 fps
-BenchmarkMooneyeMBC1Roms/mbc1/bits_bank1-2                                         	       4	 273693415 ns/op	       654.0 fps
-BenchmarkMooneyeMBC1Roms/mbc1/bits_bank1-2                                         	       4	 274086832 ns/op	       653.1 fps
-BenchmarkMooneyeMBC1Roms/mbc1/bits_bank1-2                                         	       4	 273477910 ns/op	       654.5 fps
-BenchmarkMooneyeMBC1Roms/mbc1/bits_bank1-2                                         	       4	 273674292 ns/op	       654.1 fps
-BenchmarkMooneyeMBC1Roms/mbc1/bits_bank1-2                                         	       4	 273626156 ns/op	       654.2 fps
-BenchmarkMooneyeMBC1Roms/mbc1/bits_bank2-2                                         	       4	 271175634 ns/op	       649.0 fps
-BenchmarkMooneyeMBC1Roms/mbc1/bits_bank2-2                                         	       4	 271147299 ns/op	       649.1 fps
-BenchmarkMooneyeMBC1Roms/mbc1/bits_bank2-2                                         	       4	 273709705 ns/op	       643.0 fps
-BenchmarkMooneyeMBC1Roms/mbc1/bits_bank2-2                                         	       4	 271400712 ns/op	       648.5 fps
-BenchmarkMooneyeMBC1Roms/mbc1/bits_bank2-2                                         	       4	 271581600 ns/op	       648.1 fps
-BenchmarkMooneyeMBC1Roms/mbc1/bits_mode-2                                          	       4	 276255291 ns/op	       648.0 fps
-BenchmarkMooneyeMBC1Roms/mbc1/bits_mode-2                                          	       4	 276167459 ns/op	       648.2 fps
-BenchmarkMooneyeMBC1Roms/mbc1/bits_mode-2                                          	       4	 275926244 ns/op	       648.7 fps
-BenchmarkMooneyeMBC1Roms/mbc1/bits_mode-2                                          	       4	 275873027 ns/op	       648.8 fps
-BenchmarkMooneyeMBC1Roms/mbc1/bits_mode-2                                          	       4	 275875732 ns/op	       648.8 fps
-BenchmarkMooneyeMBC1Roms/mbc1/bits_ramg-2                                          	       2	 535867692 ns/op	       653.1 fps
-BenchmarkMooneyeMBC1Roms/mbc1/bits_ramg-2                                          	       2	 535918022 ns/op	       653.1 fps
-BenchmarkMooneyeMBC1Roms/mbc1/bits_ramg-2                                          	       2	 535612206 ns/op	       653.5 fps
-BenchmarkMooneyeMBC1Roms/mbc1/bits_ramg-2                                          	       2	 535701876 ns/op	       653.3 fps
-BenchmarkMooneyeMBC1Roms/mbc1/bits_ramg-2                                          	       2	 536096610 ns/op	       652.9 fps
-BenchmarkMooneyeMBC1Roms/mbc1/multicart_rom_8Mb-2                                  	      60	  19746092 ns/op	       658.4 fps
-BenchmarkMooneyeMBC1Roms/mbc1/multicart_rom_8Mb-2                                  	      60	  19768863 ns/op	       657.6 fps
-BenchmarkMooneyeMBC1Roms/mbc1/multicart_rom_8Mb-2                                  	      60	  19757761 ns/op	       658.0 fps
-BenchmarkMooneyeMBC1Roms/mbc1/multicart_rom_8Mb-2                                  	      60	  19769448 ns/op	       657.6 fps
-BenchmarkMooneyeMBC1Roms/mbc1/multicart_rom_8Mb-2                                  	      60	  19757098 ns/op	       658.0 fps
-BenchmarkMooneyeMBC1Roms/mbc1/ram_256kb-2                                          	      13	  90185390 ns/op	       620.9 fps
-BenchmarkMooneyeMBC1Roms/mbc1/ram_256kb-2                                          	      13	  90279627 ns/op	       620.3 fps
-BenchmarkMooneyeMBC1Roms/mbc1/ram_256kb-2                                          	      13	  90260361 ns/op	       620.4 fps
-BenchmarkMooneyeMBC1Roms/mbc1/ram_256kb-2                                          	      13	  90224338 ns/op	       620.7 fps
-BenchmarkMooneyeMBC1Roms/mbc1/ram_256kb-2                                          	      13	  90176073 ns/op	       621.0 fps
-BenchmarkMooneyeMBC1Roms/mbc1/ram_64kb-2                                           	      13	  90219026 ns/op	       620.7 fps
-BenchmarkMooneyeMBC1Roms/mbc1/ram_64kb-2                                           	      13	  90185205 ns/op	       620.9 fps
-BenchmarkMooneyeMBC1Roms/mbc1/ram_64kb-2                                           	      13	  90074402 ns/op	       621.7 fps
-BenchmarkMooneyeMBC1Roms/mbc1/ram_64kb-2                                           	      13	  90135990 ns/op	       621.3 fps
-BenchmarkMooneyeMBC1Roms/mbc1/ram_64kb-2                                           	      13	  90077388 ns/op	       621.7 fps
-BenchmarkMooneyeMBC1Roms/mbc1/rom_16Mb-2                                           	      60	  19742851 ns/op	       658.5 fps
-BenchmarkMooneyeMBC1Roms/mbc1/rom_16Mb-2                                           	      60	  19753718 ns/op	       658.1 fps
-BenchmarkMooneyeMBC1Roms/mbc1/rom_16Mb-2                                           	      60	  19737444 ns/op	       658.6 fps
-BenchmarkMooneyeMBC1Roms/mbc1/rom_16Mb-2                                           	      60	  19770823 ns/op	       657.5 fps
-BenchmarkMooneyeMBC1Roms/mbc1/rom_16Mb-2                                           	      60	  19767413 ns/op	       657.6 fps
-BenchmarkMooneyeMBC1Roms/mbc1/rom_1Mb-2                                            	      60	  19697550 ns/op	       660.0 fps
-BenchmarkMooneyeMBC1Roms/mbc1/rom_1Mb-2                                            	      60	  19699357 ns/op	       659.9 fps
-BenchmarkMooneyeMBC1Roms/mbc1/rom_1Mb-2                                            	      60	  19705694 ns/op	       659.7 fps
-BenchmarkMooneyeMBC1Roms/mbc1/rom_1Mb-2                                            	      60	  19700274 ns/op	       659.9 fps
-BenchmarkMooneyeMBC1Roms/mbc1/rom_1Mb-2                                            	      60	  19706930 ns/op	       659.7 fps
-BenchmarkMooneyeMBC1Roms/mbc1/rom_2Mb-2                                            	      60	  19711953 ns/op	       659.5 fps
-BenchmarkMooneyeMBC1Roms/mbc1/rom_2Mb-2                                            	      60	  19709336 ns/op	       659.6 fps
-BenchmarkMooneyeMBC1Roms/mbc1/rom_2Mb-2                                            	      60	  19701220 ns/op	       659.9 fps
-BenchmarkMooneyeMBC1Roms/mbc1/rom_2Mb-2                                            	      60	  19860772 ns/op	       654.6 fps
-BenchmarkMooneyeMBC1Roms/mbc1/rom_2Mb-2                                            	      60	  19688598 ns/op	       660.3 fps
-BenchmarkMooneyeMBC1Roms/mbc1/rom_4Mb-2                                            	      60	  19719275 ns/op	       659.3 fps
-BenchmarkMooneyeMBC1Roms/mbc1/rom_4Mb-2                                            	      60	  19712846 ns/op	       659.5 fps
-BenchmarkMooneyeMBC1Roms/mbc1/rom_4Mb-2                                            	      60	  19706643 ns/op	       659.7 fps
-BenchmarkMooneyeMBC1Roms/mbc1/rom_4Mb-2                                            	      60	  19699280 ns/op	       659.9 fps
-BenchmarkMooneyeMBC1Roms/mbc1/rom_4Mb-2                                            	      60	  19712276 ns/op	       659.5 fps
-BenchmarkMooneyeMBC1Roms/mbc1/rom_512kb-2                                          	      60	  19684392 ns/op	       660.4 fps
-BenchmarkMooneyeMBC1Roms/mbc1/rom_512kb-2                                          	      60	  19681392 ns/op	       660.5 fps
-BenchmarkMooneyeMBC1Roms/mbc1/rom_512kb-2                                          	      60	  19666632 ns/op	       661.0 fps
-BenchmarkMooneyeMBC1Roms/mbc1/rom_512kb-2                                          	      60	  19674558 ns/op	       660.8 fps
-BenchmarkMooneyeMBC1Roms/mbc1/rom_512kb-2                                          	      60	  19682250 ns/op	       660.5 fps
-BenchmarkMooneyeMBC1Roms/mbc1/rom_8Mb-2                                            	      60	  19759551 ns/op	       657.9 fps
-BenchmarkMooneyeMBC1Roms/mbc1/rom_8Mb-2                                            	      60	  19750285 ns/op	       658.2 fps
-BenchmarkMooneyeMBC1Roms/mbc1/rom_8Mb-2                                            	      60	  19782941 ns/op	       657.1 fps
-BenchmarkMooneyeMBC1Roms/mbc1/rom_8Mb-2                                            	      60	  19740381 ns/op	       658.5 fps
-BenchmarkMooneyeMBC1Roms/mbc1/rom_8Mb-2                                            	      60	  19736305 ns/op	       658.7 fps
-BenchmarkMMUWrite-2                                                                	     301	   3985101 ns/op
-BenchmarkMMUWrite-2                                                                	     301	   3980405 ns/op
-BenchmarkMMUWrite-2                                                                	     301	   3980803 ns/op
-BenchmarkMMUWrite-2                                                                	     301	   3981563 ns/op
-BenchmarkMMUWrite-2                                                                	     301	   3981690 ns/op
-BenchmarkMMURead-2                                                                 	   23187	     51743 ns/op
-BenchmarkMMURead-2                                                                 	   23191	     51805 ns/op
-BenchmarkMMURead-2                                                                 	   23210	     51794 ns/op
-BenchmarkMMURead-2                                                                 	   23180	     51805 ns/op
-BenchmarkMMURead-2                                                                 	   23239	     51689 ns/op
+BenchmarkAcid2Roms/dmg-acid2/dmg-acid2-2         	      55	  21607534 ns/op	       462.8 fps
+--- BENCH: BenchmarkAcid2Roms/dmg-acid2/dmg-acid2-2
+    helpers_bench.go:175: (no serial data)
+    helpers_bench.go:175: (no serial data)
+BenchmarkAcid2Roms/dmg-acid2/dmg-acid2-2         	      55	  21606465 ns/op	       462.8 fps
+--- BENCH: BenchmarkAcid2Roms/dmg-acid2/dmg-acid2-2
+    helpers_bench.go:175: (no serial data)
+    helpers_bench.go:175: (no serial data)
+BenchmarkAcid2Roms/dmg-acid2/dmg-acid2-2         	      55	  21610147 ns/op	       462.7 fps
+--- BENCH: BenchmarkAcid2Roms/dmg-acid2/dmg-acid2-2
+    helpers_bench.go:175: (no serial data)
+    helpers_bench.go:175: (no serial data)
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/cpu_instrs-2         	       1	4675808260 ns/op	       689.3 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/cpu_instrs-2         	       1	4674227762 ns/op	       689.5 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/cpu_instrs-2         	       1	4677197501 ns/op	       689.1 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/cpu_instrs-2         	       1	4687952974 ns/op	       687.5 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/cpu_instrs-2         	       1	4676673359 ns/op	       689.2 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/cpu_instrs-2         	       1	4676440690 ns/op	       689.2 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/cpu_instrs-2         	       1	4676978085 ns/op	       689.1 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/cpu_instrs-2         	       1	4688238078 ns/op	       687.5 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/01-special-2         	       5	 231478340 ns/op	       643.7 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/01-special-2         	       5	 231426379 ns/op	       643.8 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/01-special-2         	       5	 231900938 ns/op	       642.5 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/01-special-2         	       5	 231454242 ns/op	       643.8 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/01-special-2         	       5	 231834302 ns/op	       642.7 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/01-special-2         	       5	 231500847 ns/op	       643.6 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/01-special-2         	       5	 232197685 ns/op	       641.7 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/01-special-2         	       5	 231815846 ns/op	       642.8 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/02-interrupts-2      	      31	  37171385 ns/op	       699.5 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/02-interrupts-2      	      31	  37215406 ns/op	       698.6 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/02-interrupts-2      	      31	  37191919 ns/op	       699.1 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/02-interrupts-2      	      31	  37243499 ns/op	       698.1 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/02-interrupts-2      	      31	  37168858 ns/op	       699.5 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/02-interrupts-2      	      31	  37199016 ns/op	       698.9 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/02-interrupts-2      	      31	  37172564 ns/op	       699.4 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/02-interrupts-2      	      31	  37190783 ns/op	       699.1 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/03-op_sp,hl-2        	       5	 204362384 ns/op	       694.8 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/03-op_sp,hl-2        	       5	 204217022 ns/op	       695.3 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/03-op_sp,hl-2        	       5	 204011712 ns/op	       696.0 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/03-op_sp,hl-2        	       5	 204128338 ns/op	       695.6 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/03-op_sp,hl-2        	       5	 204323651 ns/op	       695.0 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/03-op_sp,hl-2        	       5	 204237562 ns/op	       695.3 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/03-op_sp,hl-2        	       5	 204337247 ns/op	       694.9 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/03-op_sp,hl-2        	       5	 204237983 ns/op	       695.3 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/04-op_r,imm-2        	       5	 238333947 ns/op	       692.3 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/04-op_r,imm-2        	       5	 238511192 ns/op	       691.8 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/04-op_r,imm-2        	       5	 238470878 ns/op	       691.9 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/04-op_r,imm-2        	       5	 238482471 ns/op	       691.9 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/04-op_r,imm-2        	       5	 238299991 ns/op	       692.4 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/04-op_r,imm-2        	       5	 238566904 ns/op	       691.6 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/04-op_r,imm-2        	       5	 238434008 ns/op	       692.0 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/04-op_r,imm-2        	       5	 238603235 ns/op	       691.5 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/05-op_rp-2           	       4	 329272912 ns/op	       686.4 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/05-op_rp-2           	       4	 329207641 ns/op	       686.5 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/05-op_rp-2           	       4	 329567812 ns/op	       685.7 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/05-op_rp-2           	       4	 328789022 ns/op	       687.4 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/05-op_rp-2           	       4	 328966246 ns/op	       687.0 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/05-op_rp-2           	       4	 328822604 ns/op	       687.3 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/05-op_rp-2           	       4	 329264961 ns/op	       686.4 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/05-op_rp-2           	       4	 329000731 ns/op	       686.9 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/06-ld_r,r-2          	      22	  50421206 ns/op	       694.2 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/06-ld_r,r-2          	      22	  50482650 ns/op	       693.3 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/06-ld_r,r-2          	      22	  50388629 ns/op	       694.6 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/06-ld_r,r-2          	      22	  50454820 ns/op	       693.7 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/06-ld_r,r-2          	      22	  50395643 ns/op	       694.5 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/06-ld_r,r-2          	      22	  50474297 ns/op	       693.4 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/06-ld_r,r-2          	      22	  50401500 ns/op	       694.4 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/06-ld_r,r-2          	      22	  50512927 ns/op	       692.9 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/07-jr,jp,call,ret,rst-2         	      19	  61263192 ns/op	       701.9 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/07-jr,jp,call,ret,rst-2         	      19	  61332269 ns/op	       701.1 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/07-jr,jp,call,ret,rst-2         	      19	  61315163 ns/op	       701.3 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/07-jr,jp,call,ret,rst-2         	      19	  61336425 ns/op	       701.1 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/07-jr,jp,call,ret,rst-2         	      19	  61325257 ns/op	       701.2 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/07-jr,jp,call,ret,rst-2         	      19	  61339633 ns/op	       701.0 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/07-jr,jp,call,ret,rst-2         	      19	  61231308 ns/op	       702.3 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/07-jr,jp,call,ret,rst-2         	      19	  61344331 ns/op	       701.0 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/08-misc_instrs-2                	      25	  47335045 ns/op	       697.2 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/08-misc_instrs-2                	      25	  47330758 ns/op	       697.2 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/08-misc_instrs-2                	      25	  47397347 ns/op	       696.2 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/08-misc_instrs-2                	      25	  47334309 ns/op	       697.2 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/08-misc_instrs-2                	      25	  47389931 ns/op	       696.4 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/08-misc_instrs-2                	      25	  47302366 ns/op	       697.6 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/08-misc_instrs-2                	      25	  47381781 ns/op	       696.5 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/08-misc_instrs-2                	      25	  47338368 ns/op	       697.1 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/09-op_r,r-2                     	       2	 809674381 ns/op	       679.3 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/09-op_r,r-2                     	       2	 810423937 ns/op	       678.7 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/09-op_r,r-2                     	       2	 811772494 ns/op	       677.5 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/09-op_r,r-2                     	       2	 810106608 ns/op	       678.9 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/09-op_r,r-2                     	       2	 810146982 ns/op	       678.9 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/09-op_r,r-2                     	       2	 810105963 ns/op	       678.9 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/09-op_r,r-2                     	       2	 809314796 ns/op	       679.6 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/09-op_r,r-2                     	       2	 810836766 ns/op	       678.3 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/10-bit_ops-2                    	       1	1234907962 ns/op	       677.8 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/10-bit_ops-2                    	       1	1230638714 ns/op	       680.1 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/10-bit_ops-2                    	       1	1232061559 ns/op	       679.3 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/10-bit_ops-2                    	       1	1230381267 ns/op	       680.3 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/10-bit_ops-2                    	       1	1234208714 ns/op	       678.2 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/10-bit_ops-2                    	       1	1232021692 ns/op	       679.4 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/10-bit_ops-2                    	       1	1230579523 ns/op	       680.2 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/10-bit_ops-2                    	       1	1230981408 ns/op	       679.9 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/11-op_a,(hl)-2                  	       1	1472421935 ns/op	       718.5 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/11-op_a,(hl)-2                  	       1	1475315567 ns/op	       717.1 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/11-op_a,(hl)-2                  	       1	1471670577 ns/op	       718.9 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/11-op_a,(hl)-2                  	       1	1471276811 ns/op	       719.1 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/11-op_a,(hl)-2                  	       1	1471089716 ns/op	       719.2 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/11-op_a,(hl)-2                  	       1	1475590290 ns/op	       717.0 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/11-op_a,(hl)-2                  	       1	1471810922 ns/op	       718.8 fps
+BenchmarkBlarggCpuInstrsRoms/cpu_instrs/individual/11-op_a,(hl)-2                  	       1	1471591429 ns/op	       718.9 fps
+BenchmarkMooneyeMBC1Roms/mbc1/bits_bank1-2                                         	       4	 270915746 ns/op	       660.7 fps
+BenchmarkMooneyeMBC1Roms/mbc1/bits_bank1-2                                         	       4	 270915120 ns/op	       660.7 fps
+BenchmarkMooneyeMBC1Roms/mbc1/bits_bank1-2                                         	       4	 270865740 ns/op	       660.8 fps
+BenchmarkMooneyeMBC1Roms/mbc1/bits_bank1-2                                         	       4	 270766830 ns/op	       661.1 fps
+BenchmarkMooneyeMBC1Roms/mbc1/bits_bank1-2                                         	       4	 270709233 ns/op	       661.2 fps
+BenchmarkMooneyeMBC1Roms/mbc1/bits_bank1-2                                         	       4	 270785701 ns/op	       661.0 fps
+BenchmarkMooneyeMBC1Roms/mbc1/bits_bank1-2                                         	       4	 271049296 ns/op	       660.4 fps
+BenchmarkMooneyeMBC1Roms/mbc1/bits_bank1-2                                         	       4	 271020844 ns/op	       660.5 fps
+BenchmarkMooneyeMBC1Roms/mbc1/bits_bank2-2                                         	       4	 273258070 ns/op	       644.1 fps
+BenchmarkMooneyeMBC1Roms/mbc1/bits_bank2-2                                         	       4	 271815081 ns/op	       647.5 fps
+BenchmarkMooneyeMBC1Roms/mbc1/bits_bank2-2                                         	       4	 272857690 ns/op	       645.0 fps
+BenchmarkMooneyeMBC1Roms/mbc1/bits_bank2-2                                         	       4	 272512916 ns/op	       645.8 fps
+BenchmarkMooneyeMBC1Roms/mbc1/bits_bank2-2                                         	       4	 273154262 ns/op	       644.3 fps
+BenchmarkMooneyeMBC1Roms/mbc1/bits_bank2-2                                         	       4	 271908652 ns/op	       647.3 fps
+BenchmarkMooneyeMBC1Roms/mbc1/bits_bank2-2                                         	       4	 272948263 ns/op	       644.8 fps
+BenchmarkMooneyeMBC1Roms/mbc1/bits_bank2-2                                         	       4	 272044670 ns/op	       647.0 fps
+BenchmarkMooneyeMBC1Roms/mbc1/bits_mode-2                                          	       4	 276873222 ns/op	       646.5 fps
+BenchmarkMooneyeMBC1Roms/mbc1/bits_mode-2                                          	       4	 276646550 ns/op	       647.0 fps
+BenchmarkMooneyeMBC1Roms/mbc1/bits_mode-2                                          	       4	 276418792 ns/op	       647.6 fps
+BenchmarkMooneyeMBC1Roms/mbc1/bits_mode-2                                          	       4	 276501034 ns/op	       647.4 fps
+BenchmarkMooneyeMBC1Roms/mbc1/bits_mode-2                                          	       4	 276740164 ns/op	       646.8 fps
+BenchmarkMooneyeMBC1Roms/mbc1/bits_mode-2                                          	       4	 276263560 ns/op	       647.9 fps
+BenchmarkMooneyeMBC1Roms/mbc1/bits_mode-2                                          	       4	 276360218 ns/op	       647.7 fps
+BenchmarkMooneyeMBC1Roms/mbc1/bits_mode-2                                          	       4	 276357940 ns/op	       647.7 fps
+BenchmarkMooneyeMBC1Roms/mbc1/bits_ramg-2                                          	       2	 530538871 ns/op	       659.7 fps
+BenchmarkMooneyeMBC1Roms/mbc1/bits_ramg-2                                          	       2	 530336312 ns/op	       660.0 fps
+BenchmarkMooneyeMBC1Roms/mbc1/bits_ramg-2                                          	       2	 529422295 ns/op	       661.1 fps
+BenchmarkMooneyeMBC1Roms/mbc1/bits_ramg-2                                          	       2	 529349758 ns/op	       661.2 fps
+BenchmarkMooneyeMBC1Roms/mbc1/bits_ramg-2                                          	       2	 529369128 ns/op	       661.2 fps
+BenchmarkMooneyeMBC1Roms/mbc1/bits_ramg-2                                          	       2	 530264474 ns/op	       660.0 fps
+BenchmarkMooneyeMBC1Roms/mbc1/bits_ramg-2                                          	       2	 529784776 ns/op	       660.6 fps
+BenchmarkMooneyeMBC1Roms/mbc1/bits_ramg-2                                          	       2	 529537658 ns/op	       661.0 fps
+BenchmarkMooneyeMBC1Roms/mbc1/multicart_rom_8Mb-2                                  	      58	  20159849 ns/op	       644.8 fps
+BenchmarkMooneyeMBC1Roms/mbc1/multicart_rom_8Mb-2                                  	      58	  20117831 ns/op	       646.2 fps
+BenchmarkMooneyeMBC1Roms/mbc1/multicart_rom_8Mb-2                                  	      58	  20151943 ns/op	       645.1 fps
+BenchmarkMooneyeMBC1Roms/mbc1/multicart_rom_8Mb-2                                  	      58	  20121946 ns/op	       646.1 fps
+BenchmarkMooneyeMBC1Roms/mbc1/multicart_rom_8Mb-2                                  	      58	  20156937 ns/op	       644.9 fps
+BenchmarkMooneyeMBC1Roms/mbc1/multicart_rom_8Mb-2                                  	      58	  20103232 ns/op	       646.7 fps
+BenchmarkMooneyeMBC1Roms/mbc1/multicart_rom_8Mb-2                                  	      58	  20143158 ns/op	       645.4 fps
+BenchmarkMooneyeMBC1Roms/mbc1/multicart_rom_8Mb-2                                  	      58	  20130483 ns/op	       645.8 fps
+BenchmarkMooneyeMBC1Roms/mbc1/ram_256kb-2                                          	      13	  90625774 ns/op	       617.9 fps
+BenchmarkMooneyeMBC1Roms/mbc1/ram_256kb-2                                          	      13	  90580815 ns/op	       618.2 fps
+BenchmarkMooneyeMBC1Roms/mbc1/ram_256kb-2                                          	      12	  90530784 ns/op	       618.6 fps
+BenchmarkMooneyeMBC1Roms/mbc1/ram_256kb-2                                          	      13	  90504872 ns/op	       618.8 fps
+BenchmarkMooneyeMBC1Roms/mbc1/ram_256kb-2                                          	      13	  90530008 ns/op	       618.6 fps
+BenchmarkMooneyeMBC1Roms/mbc1/ram_256kb-2                                          	      13	  90514930 ns/op	       618.7 fps
+BenchmarkMooneyeMBC1Roms/mbc1/ram_256kb-2                                          	      13	  90492442 ns/op	       618.8 fps
+BenchmarkMooneyeMBC1Roms/mbc1/ram_256kb-2                                          	      13	  91153250 ns/op	       614.4 fps
+BenchmarkMooneyeMBC1Roms/mbc1/ram_64kb-2                                           	      13	  90442788 ns/op	       619.2 fps
+BenchmarkMooneyeMBC1Roms/mbc1/ram_64kb-2                                           	      13	  90539500 ns/op	       618.5 fps
+BenchmarkMooneyeMBC1Roms/mbc1/ram_64kb-2                                           	      12	  90469291 ns/op	       619.0 fps
+BenchmarkMooneyeMBC1Roms/mbc1/ram_64kb-2                                           	      13	  90525347 ns/op	       618.6 fps
+BenchmarkMooneyeMBC1Roms/mbc1/ram_64kb-2                                           	      13	  90534606 ns/op	       618.5 fps
+BenchmarkMooneyeMBC1Roms/mbc1/ram_64kb-2                                           	      13	  90461924 ns/op	       619.0 fps
+BenchmarkMooneyeMBC1Roms/mbc1/ram_64kb-2                                           	      12	  90514737 ns/op	       618.7 fps
+BenchmarkMooneyeMBC1Roms/mbc1/ram_64kb-2                                           	      13	  90592652 ns/op	       618.2 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_16Mb-2                                           	      58	  20181487 ns/op	       644.2 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_16Mb-2                                           	      58	  20163181 ns/op	       644.7 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_16Mb-2                                           	      58	  20201925 ns/op	       643.5 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_16Mb-2                                           	      58	  20180547 ns/op	       644.2 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_16Mb-2                                           	      58	  20204125 ns/op	       643.4 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_16Mb-2                                           	      58	  20176714 ns/op	       644.3 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_16Mb-2                                           	      58	  20208584 ns/op	       643.3 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_16Mb-2                                           	      58	  20158510 ns/op	       644.9 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_1Mb-2                                            	      58	  20096971 ns/op	       646.9 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_1Mb-2                                            	      58	  20055034 ns/op	       648.2 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_1Mb-2                                            	      58	  20037868 ns/op	       648.8 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_1Mb-2                                            	      58	  20060266 ns/op	       648.0 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_1Mb-2                                            	      58	  20050178 ns/op	       648.4 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_1Mb-2                                            	      58	  20040547 ns/op	       648.7 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_1Mb-2                                            	      58	  20009958 ns/op	       649.7 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_1Mb-2                                            	      58	  20046701 ns/op	       648.5 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_2Mb-2                                            	      58	  20061240 ns/op	       648.0 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_2Mb-2                                            	      58	  20040114 ns/op	       648.7 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_2Mb-2                                            	      58	  20058490 ns/op	       648.1 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_2Mb-2                                            	      58	  20043160 ns/op	       648.6 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_2Mb-2                                            	      58	  20057510 ns/op	       648.1 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_2Mb-2                                            	      58	  20039682 ns/op	       648.7 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_2Mb-2                                            	      58	  20030326 ns/op	       649.0 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_2Mb-2                                            	      58	  20043275 ns/op	       648.6 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_4Mb-2                                            	      58	  20122208 ns/op	       646.1 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_4Mb-2                                            	      58	  20082453 ns/op	       647.3 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_4Mb-2                                            	      58	  20144735 ns/op	       645.3 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_4Mb-2                                            	      58	  20090932 ns/op	       647.1 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_4Mb-2                                            	      58	  20137728 ns/op	       645.6 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_4Mb-2                                            	      58	  20107343 ns/op	       646.5 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_4Mb-2                                            	      58	  20148863 ns/op	       645.2 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_4Mb-2                                            	      58	  20102856 ns/op	       646.7 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_512kb-2                                          	      58	  20085308 ns/op	       647.2 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_512kb-2                                          	      58	  20034587 ns/op	       648.9 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_512kb-2                                          	      58	  20085011 ns/op	       647.2 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_512kb-2                                          	      58	  20044757 ns/op	       648.5 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_512kb-2                                          	      58	  20093749 ns/op	       647.0 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_512kb-2                                          	      58	  20047016 ns/op	       648.5 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_512kb-2                                          	      58	  20075721 ns/op	       647.5 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_512kb-2                                          	      58	  20048071 ns/op	       648.4 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_8Mb-2                                            	      58	  20130232 ns/op	       645.8 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_8Mb-2                                            	      58	  20152018 ns/op	       645.1 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_8Mb-2                                            	      58	  20135010 ns/op	       645.6 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_8Mb-2                                            	      58	  20151484 ns/op	       645.1 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_8Mb-2                                            	      58	  20161091 ns/op	       644.8 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_8Mb-2                                            	      58	  20133264 ns/op	       645.7 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_8Mb-2                                            	      58	  20146236 ns/op	       645.3 fps
+BenchmarkMooneyeMBC1Roms/mbc1/rom_8Mb-2                                            	      58	  20128750 ns/op	       645.8 fps
+BenchmarkMMUWrite-2                                                                	     652	   1856271 ns/op
+BenchmarkMMUWrite-2                                                                	     634	   1872486 ns/op
+BenchmarkMMUWrite-2                                                                	     645	   1865341 ns/op
+BenchmarkMMUWrite-2                                                                	     633	   1830201 ns/op
+BenchmarkMMUWrite-2                                                                	     640	   1864262 ns/op
+BenchmarkMMUWrite-2                                                                	     620	   1888086 ns/op
+BenchmarkMMUWrite-2                                                                	     654	   1893752 ns/op
+BenchmarkMMUWrite-2                                                                	     637	   1869241 ns/op
+BenchmarkMMURead-2                                                                 	   30840	     38737 ns/op
+BenchmarkMMURead-2                                                                 	   31616	     38861 ns/op
+BenchmarkMMURead-2                                                                 	   31537	     37730 ns/op
+BenchmarkMMURead-2                                                                 	   30661	     38472 ns/op
+BenchmarkMMURead-2                                                                 	   30950	     38762 ns/op
+BenchmarkMMURead-2                                                                 	   30754	     38682 ns/op
+BenchmarkMMURead-2                                                                 	   30597	     38948 ns/op
+BenchmarkMMURead-2                                                                 	   30702	     39098 ns/op
 PASS
-ok  	github.com/nitwhiz/gameboy/test/integration	270.085s
+ok  	github.com/nitwhiz/gameboy/test/integration	413.284s

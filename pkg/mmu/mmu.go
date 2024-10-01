@@ -13,8 +13,7 @@ type MMU struct {
 	Memory    *memory.Memory
 	Input     *input.State
 
-	TimerCounter uint16
-	TimerLock    bool
+	TimerLock bool
 
 	SerialReceiver func(byte)
 }
@@ -22,9 +21,8 @@ type MMU struct {
 func New(in *input.State) *MMU {
 	return &MMU{
 		Cartridge:      nil,
-		Memory:         memory.New().Init(),
+		Memory:         memory.New(),
 		Input:          in,
-		TimerCounter:   0xAC00,
 		TimerLock:      false,
 		SerialReceiver: nil,
 	}
@@ -34,14 +32,45 @@ func inRange(a, l, u uint16) bool {
 	return a >= l && a <= u
 }
 
-func (m *MMU) Read(address uint16) byte {
+func (m *MMU) mappedWrite(address uint16, v byte) {
+	switch {
+	case address == addr.IE:
+		m.Memory.IE = v
+	case address == addr.IF:
+		m.Memory.IF = v | memory.GetUnusedBits(addr.IF)
+	case address == addr.DIV:
+		m.ResetTimer()
+	case inRange(address, addr.MemAudioBegin, addr.MemAudioEnd):
+		// not implemented
+		return
+	case inRange(address, addr.MemWaveBegin, addr.MemWaveEnd):
+		// not implemented
+		return
+	case inRange(address, addr.MemROMBegin, addr.MemROMEnd):
+		m.Cartridge.WriteROM(address, v)
+	case inRange(address, addr.MemVRAMBegin, addr.MemVRAMEnd):
+		m.Memory.VRAM[address-addr.MemVRAMBegin] = v
+	case inRange(address, addr.MemCartridgeRAMBegin, addr.MemCartridgeRAMEnd):
+		m.Cartridge.WriteRAM(address, v)
+	case inRange(address, addr.MemWRAMBegin, addr.MemWRAMEnd):
+		m.Memory.WRAM[address-addr.MemWRAMBegin] = v
+	case inRange(address, addr.MemOAMBegin, addr.MemOAMEnd):
+		m.Memory.OAM[address-addr.MemOAMBegin] = v
+	case inRange(address, addr.MemIOBegin, addr.MemIOEnd):
+		m.writeIO(address, v)
+	case inRange(address, addr.MemHRAMBegin, addr.MemHRAMEnd):
+		m.Memory.HRAM[address-addr.MemHRAMBegin] = v
+	}
+}
+
+func (m *MMU) mappedRead(address uint16) byte {
 	switch {
 	case address == addr.IE:
 		return m.Memory.IE
 	case address == addr.IF:
 		return m.Memory.IF
 	case address == addr.DIV:
-		return byte((m.TimerCounter & 0xFF00) >> 8)
+		return byte((m.Memory.TimerCounter & 0xFF00) >> 8)
 	case address == addr.JOYP:
 		v := m.Memory.IO[address-addr.MemIOBegin] & 0xF0
 
@@ -79,35 +108,12 @@ func (m *MMU) Read(address uint16) byte {
 	}
 }
 
+func (m *MMU) Read(address uint16) byte {
+	return m.mappedRead(address)
+}
+
 func (m *MMU) Write(address uint16, v byte) {
-	switch {
-	case address == addr.IE:
-		m.Memory.IE = v
-	case address == addr.IF:
-		m.Memory.IF = v | memory.GetUnusedBits(addr.IF)
-	case address == addr.DIV:
-		m.ResetTimer()
-	case inRange(address, addr.MemAudioBegin, addr.MemAudioEnd):
-		// not implemented
-		return
-	case inRange(address, addr.MemWaveBegin, addr.MemWaveEnd):
-		// not implemented
-		return
-	case inRange(address, addr.MemROMBegin, addr.MemROMEnd):
-		m.Cartridge.WriteROM(address, v)
-	case inRange(address, addr.MemVRAMBegin, addr.MemVRAMEnd):
-		m.Memory.VRAM[address-addr.MemVRAMBegin] = v
-	case inRange(address, addr.MemCartridgeRAMBegin, addr.MemCartridgeRAMEnd):
-		m.Cartridge.WriteRAM(address, v)
-	case inRange(address, addr.MemWRAMBegin, addr.MemWRAMEnd):
-		m.Memory.WRAM[address-addr.MemWRAMBegin] = v
-	case inRange(address, addr.MemOAMBegin, addr.MemOAMEnd):
-		m.Memory.OAM[address-addr.MemOAMBegin] = v
-	case inRange(address, addr.MemIOBegin, addr.MemIOEnd):
-		m.writeIO(address, v)
-	case inRange(address, addr.MemHRAMBegin, addr.MemHRAMEnd):
-		m.Memory.HRAM[address-addr.MemHRAMBegin] = v
-	}
+	m.mappedWrite(address, v)
 }
 
 func (m *MMU) RequestInterrupt(typ addr.InterruptType) {
@@ -197,5 +203,5 @@ func (m *MMU) dmaTransfer(v byte) {
 }
 
 func (m *MMU) ResetTimer() {
-	m.TimerCounter = 0
+	m.Memory.TimerCounter = 0
 }

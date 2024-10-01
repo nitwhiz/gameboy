@@ -7,8 +7,7 @@ type Memory struct {
 	WRAM [0x2000]byte
 	OAM  [0x0100]byte
 	HRAM [0x0080]byte
-
-	IO [0x0080]byte
+	IO   [0x0080]byte
 
 	// IE - Interrupt Enable
 	IE byte
@@ -27,14 +26,10 @@ func New() *Memory {
 		OAM:  [0x0100]byte{},
 		HRAM: [0x0080]byte{},
 		IO:   [0x0080]byte{},
-
-		IE: 0,
 	}
 
-	return &m
-}
+	m.TimerCounter = 0xAC00
 
-func (m *Memory) Init() *Memory {
 	for i := range len(m.IO) {
 		m.IO[i] = 0xFF
 	}
@@ -140,5 +135,5 @@ func (m *Memory) Init() *Memory {
 		m.IO[i] |= GetUnusedBits(addr.MemIOBegin + uint16(i))
 	}
 
-	return m
+	return &m
 }

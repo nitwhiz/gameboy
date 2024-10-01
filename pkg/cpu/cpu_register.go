@@ -7,6 +7,32 @@ type Register struct {
 	mask  uint16
 }
 
+func (r *Register) Serialize() ([]byte, error) {
+	return json.Marshal(struct {
+		Value uint16
+		Mask  uint16
+	}{
+		Value: r.value,
+		Mask:  r.mask,
+	})
+}
+
+func (r *Register) Deserialize(bs []byte) error {
+	var reg struct {
+		Value uint16
+		Mask  uint16
+	}
+
+	if err := json.Unmarshal(bs, &reg); err != nil {
+		return err
+	}
+
+	r.value = reg.Value
+	r.mask = reg.Mask
+
+	return nil
+}
+
 func (r *Register) Set(v uint16) {
 	r.value = v & r.mask
 }

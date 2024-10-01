@@ -1,13 +1,12 @@
-package inst
+package gb
 
 import (
 	"fmt"
-	"github.com/nitwhiz/gameboy/pkg/gb"
 	"log/slog"
 	"sync"
 )
 
-type handler func(g *gb.GameBoy) (ticks byte)
+type handler func(g *GameBoy) (ticks byte)
 
 type table [0x100]handler
 
@@ -33,7 +32,7 @@ func (i *table) handler(code byte) handler {
 	return i[code]
 }
 
-func (i *table) executeNextOpcode(g *gb.GameBoy) (ticks byte) {
+func (i *table) executeNextOpcode(g *GameBoy) (ticks byte) {
 	code := g.Fetch8()
 	hand := i.handler(code)
 
@@ -84,10 +83,4 @@ func InitHandlers() {
 	initPHandlers()
 
 	initialized = true
-}
-
-// ExecuteNextOpcode executes the next opcode.
-// returns the amount of system clock ticks it consumed.
-func ExecuteNextOpcode(g *gb.GameBoy) (ticks byte) {
-	return h.executeNextOpcode(g)
 }

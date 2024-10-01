@@ -1,4 +1,4 @@
-package inst
+package gb
 
 import (
 	"encoding/json"

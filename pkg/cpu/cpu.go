@@ -1,6 +1,8 @@
 package cpu
 
-import "github.com/nitwhiz/gameboy/pkg/bits"
+import (
+	"github.com/nitwhiz/gameboy/pkg/bits"
+)
 
 type Flag byte
 
@@ -39,7 +41,7 @@ type CPU struct {
 }
 
 func New() *CPU {
-	return &CPU{
+	c := CPU{
 		AF: &Register{},
 
 		BC: &Register{},
@@ -52,9 +54,7 @@ func New() *CPU {
 
 		IME: false,
 	}
-}
 
-func (c *CPU) Init() *CPU {
 	c.AF.value = 0x01B0
 
 	c.BC.value = 0x0013
@@ -75,7 +75,7 @@ func (c *CPU) Init() *CPU {
 	c.SP.mask = 0xFFFF
 	c.PC.mask = 0xFFFF
 
-	return c
+	return &c
 }
 
 func (c *CPU) SetFlag(flag Flag, v bool) {

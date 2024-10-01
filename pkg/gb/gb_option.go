@@ -38,11 +38,3 @@ func WithSerialReceiver(receiver func(byte)) GameBoyOption {
 		return nil
 	}
 }
-
-func WithExecuteNextOpcodeFunc(fun ExecuteNextOpcodeFunc) GameBoyOption {
-	return func(g *GameBoy) error {
-		g.ExecuteNextOpcodeFunc = fun
-
-		return nil
-	}
-}

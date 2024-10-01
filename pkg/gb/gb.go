@@ -13,8 +13,6 @@ import (
 	"sync"
 )
 
-type ExecuteNextOpcodeFunc func(g *GameBoy) (ticks byte)
-
 type GameBoy struct {
 	CPU *cpu.CPU
 	MMU *mmu.MMU
@@ -27,15 +25,13 @@ type GameBoy struct {
 
 	PPU *ppu.PPU
 
-	ExecuteNextOpcodeFunc ExecuteNextOpcodeFunc
-
 	HaltBug int
 
 	mu *sync.Mutex
 }
 
 func New(options ...GameBoyOption) (*GameBoy, error) {
-	c := cpu.New().Init()
+	c := cpu.New()
 
 	in := input.NewState()
 
@@ -108,7 +104,7 @@ func (g *GameBoy) Update(ctx context.Context) {
 			// this is not accurate
 			ticks += 1
 		} else {
-			ticks += int(g.ExecuteNextOpcodeFunc(g))
+			ticks += int(h.executeNextOpcode(g))
 
 			if g.HaltBug > 0 {
 				if g.HaltBug == 1 {

@@ -29,7 +29,7 @@ func (t *Timer) Tick(ticks int) {
 
 	nextTima := int(tima)
 
-	if t.MMU.TimerCounter == 0 && t.TriggerOnFallingEdge {
+	if t.MMU.Memory.TimerCounter == 0 && t.TriggerOnFallingEdge {
 		t.TriggerOnFallingEdge = false
 		nextTima++
 	}
@@ -38,12 +38,12 @@ func (t *Timer) Tick(ticks int) {
 	clockSelect := bits.GetTACClockSelect(tac)
 	tacMask := GetTACMask(clockSelect)
 
-	if !tacEnabled && t.LastTACEnabled && t.MMU.TimerCounter&tacMask != 0 {
+	if !tacEnabled && t.LastTACEnabled && t.MMU.Memory.TimerCounter&tacMask != 0 {
 		nextTima++
 	}
 
 	for range ticks {
-		t.MMU.TimerCounter++
+		t.MMU.Memory.TimerCounter++
 
 		if t.PostTIMAOverflowTicks > -1 {
 			t.PostTIMAOverflowTicks++
@@ -60,7 +60,7 @@ func (t *Timer) Tick(ticks int) {
 		}
 
 		if tacEnabled {
-			if t.MMU.TimerCounter&tacMask != 0 {
+			if t.MMU.Memory.TimerCounter&tacMask != 0 {
 				t.TriggerOnFallingEdge = true
 			} else if t.TriggerOnFallingEdge {
 				t.TriggerOnFallingEdge = false

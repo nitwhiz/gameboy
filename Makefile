@@ -2,7 +2,7 @@ PWD := $(shell pwd)
 GO_IMAGE_TAG := 1.23.1-alpine
 GO := docker run --rm -v $(PWD):/source --workdir=/source golang:$(GO_IMAGE_TAG) go
 
-BENCHMARK_COUNT ?= 5
+BENCHMARK_COUNT ?= 8
 
 .PHONY: clean
 clean:
@@ -31,7 +31,7 @@ benchstat_image:
 	docker build --tag benchstat docker/benchstat
 
 .PHONY: benchmark
-benchmark: bechstat_image
+benchmark: benchstat_image
 	mkdir -p testdata/benchmarks
 	$(GO) test -count=$(BENCHMARK_COUNT) -run='^$$' -bench=. ./... > testdata/benchmarks/latest.txt
 	docker run --rm -v $(PWD):/source --workdir=/source benchstat testdata/benchmarks/baseline.txt testdata/benchmarks/latest.txt
