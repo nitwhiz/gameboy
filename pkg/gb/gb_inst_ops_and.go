@@ -3,42 +3,42 @@ package gb
 func addANDHandlers() {
 	// AND A, B
 	h.add(0xA0, func(g *GameBoy) (ticks byte) {
-		return instAnd(g.CPU, g.CPU.BC.Hi())
+		return instAnd(g.CPU, g.CPU.BC().Hi())
 	})
 
 	// AND A, C
 	h.add(0xA1, func(g *GameBoy) (ticks byte) {
-		return instAnd(g.CPU, g.CPU.BC.Lo())
+		return instAnd(g.CPU, g.CPU.BC().Lo())
 	})
 
 	// AND A, D
 	h.add(0xA2, func(g *GameBoy) (ticks byte) {
-		return instAnd(g.CPU, g.CPU.DE.Hi())
+		return instAnd(g.CPU, g.CPU.DE().Hi())
 	})
 
 	// AND A, E
 	h.add(0xA3, func(g *GameBoy) (ticks byte) {
-		return instAnd(g.CPU, g.CPU.DE.Lo())
+		return instAnd(g.CPU, g.CPU.DE().Lo())
 	})
 
 	// AND A, H
 	h.add(0xA4, func(g *GameBoy) (ticks byte) {
-		return instAnd(g.CPU, g.CPU.HL.Hi())
+		return instAnd(g.CPU, g.CPU.HL().Hi())
 	})
 
 	// AND A, L
 	h.add(0xA5, func(g *GameBoy) (ticks byte) {
-		return instAnd(g.CPU, g.CPU.HL.Lo())
+		return instAnd(g.CPU, g.CPU.HL().Lo())
 	})
 
 	// AND A, [HL]
 	h.add(0xA6, func(g *GameBoy) (ticks byte) {
-		return instAnd(g.CPU, g.MMU.Read(g.CPU.HL.Val())) + 4
+		return instAnd(g.CPU, g.MMU.Read(g.CPU.HL().Val())) + 4
 	})
 
 	// AND A, A
 	h.add(0xA7, func(g *GameBoy) (ticks byte) {
-		return instAnd(g.CPU, g.CPU.AF.Hi())
+		return instAnd(g.CPU, g.CPU.AF().Hi())
 	})
 
 	// AND A, n8

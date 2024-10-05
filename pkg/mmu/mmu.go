@@ -3,28 +3,24 @@ package mmu
 import (
 	"github.com/nitwhiz/gameboy/pkg/addr"
 	"github.com/nitwhiz/gameboy/pkg/bits"
-	"github.com/nitwhiz/gameboy/pkg/cartridge"
-	"github.com/nitwhiz/gameboy/pkg/input"
-	"github.com/nitwhiz/gameboy/pkg/memory"
+	"github.com/nitwhiz/gameboy/pkg/types"
 )
 
 type MMU struct {
-	Cartridge *cartridge.Cartridge
-	Memory    *memory.Memory
-	Input     *input.State
-
-	TimerLock bool
-
-	SerialReceiver func(byte)
+	cartridge      types.Cartridge
+	memory         types.Memory
+	input          types.InputState
+	timerLock      bool
+	serialReceiver func(byte)
 }
 
-func New(in *input.State) *MMU {
+func New(in types.InputState, mem types.Memory) *MMU {
 	return &MMU{
-		Cartridge:      nil,
-		Memory:         memory.New(),
-		Input:          in,
-		TimerLock:      false,
-		SerialReceiver: nil,
+		cartridge:      nil,
+		memory:         mem,
+		input:          in,
+		timerLock:      false,
+		serialReceiver: nil,
 	}
 }
 
@@ -34,12 +30,8 @@ func inRange(a, l, u uint16) bool {
 
 func (m *MMU) mappedWrite(address uint16, v byte) {
 	switch {
-	case address == addr.IE:
-		m.Memory.IE = v
-	case address == addr.IF:
-		m.Memory.IF = v | memory.GetUnusedBits(addr.IF)
 	case address == addr.DIV:
-		m.ResetTimer()
+		m.memory.ResetTimerCounter()
 	case inRange(address, addr.MemAudioBegin, addr.MemAudioEnd):
 		// not implemented
 		return
@@ -47,62 +39,50 @@ func (m *MMU) mappedWrite(address uint16, v byte) {
 		// not implemented
 		return
 	case inRange(address, addr.MemROMBegin, addr.MemROMEnd):
-		m.Cartridge.WriteROM(address, v)
+		m.cartridge.BankingController().WriteROM(address, v)
 	case inRange(address, addr.MemVRAMBegin, addr.MemVRAMEnd):
-		m.Memory.VRAM[address-addr.MemVRAMBegin] = v
+		m.memory.WriteVRAM(m.memory.AddrVRAM(address), v)
 	case inRange(address, addr.MemCartridgeRAMBegin, addr.MemCartridgeRAMEnd):
-		m.Cartridge.WriteRAM(address, v)
+		m.cartridge.BankingController().WriteRAM(address, v)
 	case inRange(address, addr.MemWRAMBegin, addr.MemWRAMEnd):
-		m.Memory.WRAM[address-addr.MemWRAMBegin] = v
+		m.memory.WriteWRAM(address-addr.MemWRAMBegin, v)
 	case inRange(address, addr.MemOAMBegin, addr.MemOAMEnd):
-		m.Memory.OAM[address-addr.MemOAMBegin] = v
+		m.memory.WriteOAM(m.memory.AddrOAM(address), v)
 	case inRange(address, addr.MemIOBegin, addr.MemIOEnd):
 		m.writeIO(address, v)
 	case inRange(address, addr.MemHRAMBegin, addr.MemHRAMEnd):
-		m.Memory.HRAM[address-addr.MemHRAMBegin] = v
+		m.memory.WriteHRAM(address-addr.MemHRAMBegin, v)
 	}
 }
 
 func (m *MMU) mappedRead(address uint16) byte {
 	switch {
-	case address == addr.IE:
-		return m.Memory.IE
-	case address == addr.IF:
-		return m.Memory.IF
 	case address == addr.DIV:
-		return byte((m.Memory.TimerCounter & 0xFF00) >> 8)
+		return m.memory.Div()
 	case address == addr.JOYP:
-		v := m.Memory.IO[address-addr.MemIOBegin] & 0xF0
+		v := m.memory.ReadIO(m.memory.AddrIO(address)) & 0xF0
 
 		if bits.IsJOYPSelectButtons(v) {
-			return v | m.Input.Get(input.SelectButtons)
+			return v | m.input.Value(types.InputSelectButtons)
 		} else if bits.IsJOYPSelectDPad(v) {
-			return v | m.Input.Get(input.SelectDPad)
+			return v | m.input.Value(types.InputSelectDPad)
 		}
 
-		return v | 0x0F | memory.GetUnusedBits(addr.JOYP)
+		return v | 0x0F | GetUnusedBits(addr.JOYP)
 	case inRange(address, addr.MemROMBegin, addr.MemROMEnd):
-		if m.Cartridge == nil {
-			return 0xFF
-		}
-
-		return m.Cartridge.Read(address)
+		return m.cartridge.BankingController().Read(address)
 	case inRange(address, addr.MemVRAMBegin, addr.MemVRAMEnd):
-		return m.Memory.VRAM[address-addr.MemVRAMBegin]
+		return m.memory.ReadVRAM(address - addr.MemVRAMBegin)
 	case inRange(address, addr.MemCartridgeRAMBegin, addr.MemCartridgeRAMEnd):
-		if m.Cartridge == nil {
-			return 0xFF
-		}
-
-		return m.Cartridge.Read(address)
+		return m.cartridge.BankingController().Read(address)
 	case inRange(address, addr.MemWRAMBegin, addr.MemWRAMEnd):
-		return m.Memory.WRAM[address-addr.MemWRAMBegin]
+		return m.memory.ReadWRAM(m.memory.AddrWRAM(address))
 	case inRange(address, addr.MemOAMBegin, addr.MemOAMEnd):
-		return m.Memory.OAM[address-addr.MemOAMBegin]
+		return m.memory.ReadOAM(m.memory.AddrOAM(address))
 	case inRange(address, addr.MemIOBegin, addr.MemIOEnd):
-		return m.Memory.IO[address-addr.MemIOBegin]
+		return m.memory.ReadIO(m.memory.AddrIO(address))
 	case inRange(address, addr.MemHRAMBegin, addr.MemHRAMEnd):
-		return m.Memory.HRAM[address-addr.MemHRAMBegin]
+		return m.memory.ReadHRAM(m.memory.AddrHRAM(address))
 	default:
 		return 0xFF
 	}
@@ -116,7 +96,23 @@ func (m *MMU) Write(address uint16, v byte) {
 	m.mappedWrite(address, v)
 }
 
-func (m *MMU) RequestInterrupt(typ addr.InterruptType) {
+func (m *MMU) Cartridge() types.Cartridge {
+	return m.cartridge
+}
+
+func (m *MMU) SetCartridge(cartridge types.Cartridge) {
+	m.cartridge = cartridge
+}
+
+func (m *MMU) SetSerialReceiver(receiver func(byte)) {
+	m.serialReceiver = receiver
+}
+
+func (m *MMU) Memory() types.Memory {
+	return m.memory
+}
+
+func (m *MMU) RequestInterrupt(typ types.InterruptType) {
 	m.Write(addr.IF, bits.Set(m.Read(addr.IF), byte(typ)))
 }
 
@@ -139,59 +135,53 @@ func (m *MMU) CheckLYCLY() {
 }
 
 func (m *MMU) writeIO(address uint16, v byte) {
-	if memory.IsUnmapped(address) {
+	if IsUnmapped(address) {
 		return
 	}
 
-	v |= memory.GetUnusedBits(address)
+	v |= GetUnusedBits(address)
 
 	switch {
 	case address == addr.JOYP:
-		m.Memory.IO[address-addr.MemIOBegin] = v & 0b00110000
+		m.memory.WriteIO(address-addr.MemIOBegin, v&0b00110000)
 		return
 	case address == addr.SC:
 		if bits.Test(v, 7) && bits.Test(v, 0) {
-			if m.SerialReceiver != nil {
-				m.SerialReceiver(m.Read(addr.SB))
+			if m.serialReceiver != nil {
+				m.serialReceiver(m.Read(addr.SB))
 			}
 		}
 	case address == addr.LCDC:
 		if !bits.Test(v, addr.LCDC_ENABLE) {
-			m.SetLY(0)
+			m.ResetLY()
 			return
 		}
 	case address == addr.DMA:
 		m.dmaTransfer(v)
 		return
 	case address == addr.TIMA:
-		if m.TimerLock {
+		if m.timerLock {
 			return
 		}
 	case address == addr.LYC:
-		m.Memory.IO[address-addr.MemIOBegin] = v
+		m.memory.WriteIO(m.memory.AddrIO(address), v)
 		m.CheckLYCLY()
 		return
 	default:
 	}
 
-	m.Memory.IO[address-addr.MemIOBegin] = v
-}
-
-// SetTIMA does not respect the timer lock
-func (m *MMU) SetTIMA(tima byte) {
-	m.Memory.IO[addr.TIMA-addr.MemIOBegin] = tima
+	m.memory.WriteIO(address-addr.MemIOBegin, v)
 }
 
 func (m *MMU) IncLY() byte {
-	v := m.Memory.IO[addr.LY-addr.MemIOBegin] + 1
+	ly := m.memory.ReadIO(m.memory.AddrIO(addr.LY)) + 1
+	m.memory.WriteIO(m.memory.AddrIO(addr.LY), ly)
 
-	m.SetLY(v)
-
-	return v
+	return ly
 }
 
-func (m *MMU) SetLY(v byte) {
-	m.Memory.IO[addr.LY-addr.MemIOBegin] = v
+func (m *MMU) ResetLY() {
+	m.memory.WriteIO(addr.LY-addr.MemIOBegin, 0)
 }
 
 func (m *MMU) dmaTransfer(v byte) {
@@ -202,6 +192,56 @@ func (m *MMU) dmaTransfer(v byte) {
 	}
 }
 
-func (m *MMU) ResetTimer() {
-	m.Memory.TimerCounter = 0
+func IsUnmapped(address uint16) bool {
+	if address < 0xFF03 || address > 0xFF7F {
+		return false
+	}
+
+	if address >= 0xFF4C {
+		return true
+	}
+
+	return address == 0xFF03 ||
+		address == 0xFF08 ||
+		address == 0xFF09 ||
+		address == 0xFF0A ||
+		address == 0xFF0B ||
+		address == 0xFF0C ||
+		address == 0xFF0D ||
+		address == 0xFF0E ||
+		address == 0xFF15 ||
+		address == 0xFF1F ||
+		address == 0xFF27 ||
+		address == 0xFF28 ||
+		address == 0xFF29
+}
+
+// GetUnusedBits returns a byte with 1's for unused bits
+func GetUnusedBits(address uint16) byte {
+	switch address {
+	case addr.JOYP:
+		return 0b11000000
+	case addr.SC:
+		return 0b01111110
+	case addr.TAC:
+		return 0b11111000
+	case addr.IF:
+		return 0b11100000
+	case 0xFF10:
+		return 0b10000000
+	case 0xFF1A:
+		return 0b01111111
+	case 0xFF1C:
+		return 0b10011111
+	case 0xFF20:
+		return 0b11000000
+	case 0xFF23:
+		return 0b00111111
+	case 0xFF26:
+		return 0b01110000
+	case addr.STAT:
+		return 0b10000000
+	default:
+		return 0
+	}
 }

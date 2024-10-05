@@ -1,86 +1,32 @@
 package cpu
 
-import "encoding/json"
+type Register uint16
 
-type Register struct {
-	value uint16
-	mask  uint16
-}
-
-func (r *Register) Serialize() ([]byte, error) {
-	return json.Marshal(struct {
-		Value uint16
-		Mask  uint16
-	}{
-		Value: r.value,
-		Mask:  r.mask,
-	})
-}
-
-func (r *Register) Deserialize(bs []byte) error {
-	var reg struct {
-		Value uint16
-		Mask  uint16
-	}
-
-	if err := json.Unmarshal(bs, &reg); err != nil {
-		return err
-	}
-
-	r.value = reg.Value
-	r.mask = reg.Mask
-
-	return nil
+func NewRegister(v uint16) *Register {
+	r := Register(v)
+	return &r
 }
 
 func (r *Register) Set(v uint16) {
-	r.value = v & r.mask
+	*r = Register(v)
 }
 
 func (r *Register) Val() uint16 {
-	return r.value
+	return uint16(*r)
 }
 
 func (r *Register) SetLo(v byte) {
-	r.Set((r.value & 0xFF00) | uint16(v))
+	r.Set((uint16(*r) & 0xFF00) | uint16(v))
 }
 
 func (r *Register) SetHi(v byte) {
-	r.Set((uint16(v) << 8) | (r.value & 0x00FF))
+	r.Set((uint16(*r) & 0x00FF) | (uint16(v) << 8))
 }
 
 func (r *Register) Lo() byte {
-	return byte(r.value & 0xFF)
+	return byte(*r)
 }
 
 func (r *Register) Hi() byte {
-	return byte((r.value & 0xFF00) >> 8)
-}
-
-func (r *Register) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct {
-		Value uint16
-		Mask  uint16
-	}{
-		Value: r.value,
-		Mask:  r.mask,
-	})
-}
-
-func (r *Register) UnmarshalJSON(bs []byte) error {
-	var reg struct {
-		Value uint16
-		Mask  uint16
-	}
-
-	err := json.Unmarshal(bs, &reg)
-
-	if err != nil {
-		return err
-	}
-
-	r.value = reg.Value
-	r.mask = reg.Mask
-
-	return nil
+	return byte(*r >> 8)
 }

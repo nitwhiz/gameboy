@@ -1,32 +1,32 @@
 package gb
 
 import (
-	"github.com/nitwhiz/gameboy/pkg/cpu"
+	"github.com/nitwhiz/gameboy/pkg/types"
 )
 
-func instAdd(c *cpu.CPU, val byte, carry bool) (ticks byte) {
-	a := c.AF.Hi()
+func instAdd(c types.CPU, val byte, carry bool) (ticks byte) {
+	a := c.AF().Hi()
 	r := int16(a) + int16(val)
 	cv := int16(a&0x0F) + int16(val&0xF)
 
-	if carry && c.Flag(cpu.C) {
+	if carry && c.Flag(types.FlagC) {
 		r += 1
 		cv += 1
 	}
 
 	result := byte(r)
 
-	c.AF.SetHi(result)
+	c.AF().SetHi(result)
 
-	c.SetFlag(cpu.Z, result == 0)
-	c.SetFlag(cpu.N, false)
-	c.SetFlag(cpu.H, cv > 0x0F)
-	c.SetFlag(cpu.C, r > 0xFF)
+	c.SetFlag(types.FlagZ, result == 0)
+	c.SetFlag(types.FlagN, false)
+	c.SetFlag(types.FlagH, cv > 0x0F)
+	c.SetFlag(types.FlagC, r > 0xFF)
 
 	return 4
 }
 
-func instAdd16Signed(c *cpu.CPU, dst *cpu.Register, src *cpu.Register, s8 int8) (ticks byte) {
+func instAdd16Signed(c types.CPU, dst types.Register, src types.Register, s8 int8) (ticks byte) {
 	v := src.Val()
 	r := uint16(int32(v) + int32(s8))
 
@@ -34,30 +34,30 @@ func instAdd16Signed(c *cpu.CPU, dst *cpu.Register, src *cpu.Register, s8 int8) 
 
 	o := v ^ uint16(s8) ^ r
 
-	c.SetFlag(cpu.Z, false)
-	c.SetFlag(cpu.N, false)
-	c.SetFlag(cpu.H, (o&0x0010) == 0x0010)
-	c.SetFlag(cpu.C, (o&0x0100) == 0x0100)
+	c.SetFlag(types.FlagZ, false)
+	c.SetFlag(types.FlagN, false)
+	c.SetFlag(types.FlagH, (o&0x0010) == 0x0010)
+	c.SetFlag(types.FlagC, (o&0x0100) == 0x0100)
 
 	return 12
 }
 
-func instIncReg(reg *cpu.Register) (ticks byte) {
+func instIncReg(reg types.Register) (ticks byte) {
 	reg.Set(reg.Val() + 1)
 	return 8
 }
 
-func instInc8(c *cpu.CPU, val byte) (ticks byte, result byte) {
+func instInc8(c types.CPU, val byte) (ticks byte, result byte) {
 	r := val + 1
 
-	c.SetFlag(cpu.Z, r == 0)
-	c.SetFlag(cpu.N, false)
-	c.SetFlag(cpu.H, (val&0x0F)+1 > 0x0F)
+	c.SetFlag(types.FlagZ, r == 0)
+	c.SetFlag(types.FlagN, false)
+	c.SetFlag(types.FlagH, (val&0x0F)+1 > 0x0F)
 
 	return 4, r
 }
 
-func instIncRegHi(c *cpu.CPU, reg *cpu.Register) (ticks byte) {
+func instIncRegHi(c types.CPU, reg types.Register) (ticks byte) {
 	t, r := instInc8(c, reg.Hi())
 
 	reg.SetHi(r)
@@ -65,7 +65,7 @@ func instIncRegHi(c *cpu.CPU, reg *cpu.Register) (ticks byte) {
 	return t
 }
 
-func instIncRegLo(c *cpu.CPU, reg *cpu.Register) (ticks byte) {
+func instIncRegLo(c types.CPU, reg types.Register) (ticks byte) {
 	t, r := instInc8(c, reg.Lo())
 
 	reg.SetLo(r)
@@ -73,97 +73,97 @@ func instIncRegLo(c *cpu.CPU, reg *cpu.Register) (ticks byte) {
 	return t
 }
 
-func instAdd16HL(c *cpu.CPU, val uint16) (ticks byte) {
-	hl := c.HL.Val()
+func instAdd16HL(c types.CPU, val uint16) (ticks byte) {
+	hl := c.HL().Val()
 	r := int32(hl) + int32(val)
 
 	result := uint16(r)
 
-	c.HL.Set(result)
+	c.HL().Set(result)
 
-	c.SetFlag(cpu.N, false)
-	c.SetFlag(cpu.H, int32(hl&0x0FFF) > (r&0x0FFF))
-	c.SetFlag(cpu.C, r > 0xFFFF)
+	c.SetFlag(types.FlagN, false)
+	c.SetFlag(types.FlagH, int32(hl&0x0FFF) > (r&0x0FFF))
+	c.SetFlag(types.FlagC, r > 0xFFFF)
 
 	return 8
 }
 
-func instAnd(c *cpu.CPU, val byte) (ticks byte) {
-	result := c.AF.Hi() & val
+func instAnd(c types.CPU, val byte) (ticks byte) {
+	result := c.AF().Hi() & val
 
-	c.AF.SetHi(result)
+	c.AF().SetHi(result)
 
-	c.SetFlag(cpu.Z, result == 0)
-	c.SetFlag(cpu.N, false)
-	c.SetFlag(cpu.H, true)
-	c.SetFlag(cpu.C, false)
+	c.SetFlag(types.FlagZ, result == 0)
+	c.SetFlag(types.FlagN, false)
+	c.SetFlag(types.FlagH, true)
+	c.SetFlag(types.FlagC, false)
 
 	return 4
 }
 
-func instCp(c *cpu.CPU, val byte) (ticks byte) {
-	a := c.AF.Hi()
+func instCp(c types.CPU, val byte) (ticks byte) {
+	a := c.AF().Hi()
 	result := a - val
 
-	c.SetFlag(cpu.Z, result == 0)
-	c.SetFlag(cpu.N, true)
-	c.SetFlag(cpu.H, (val&0x0F) > (a&0x0F))
-	c.SetFlag(cpu.C, val > a)
+	c.SetFlag(types.FlagZ, result == 0)
+	c.SetFlag(types.FlagN, true)
+	c.SetFlag(types.FlagH, (val&0x0F) > (a&0x0F))
+	c.SetFlag(types.FlagC, val > a)
 
 	return 4
 }
 
-func instOr(c *cpu.CPU, val byte) (ticks byte) {
-	result := c.AF.Hi() | val
+func instOr(c types.CPU, val byte) (ticks byte) {
+	result := c.AF().Hi() | val
 
-	c.AF.SetHi(result)
+	c.AF().SetHi(result)
 
-	c.SetFlag(cpu.Z, result == 0)
-	c.SetFlag(cpu.N, false)
-	c.SetFlag(cpu.H, false)
-	c.SetFlag(cpu.C, false)
+	c.SetFlag(types.FlagZ, result == 0)
+	c.SetFlag(types.FlagN, false)
+	c.SetFlag(types.FlagH, false)
+	c.SetFlag(types.FlagC, false)
 
 	return 4
 }
 
-func instSub(c *cpu.CPU, val byte, carry bool) (ticks byte) {
-	a := c.AF.Hi()
+func instSub(c types.CPU, val byte, carry bool) (ticks byte) {
+	a := c.AF().Hi()
 	r := int16(a) - int16(val)
 	cv := int16(a&0x0F) - int16(val&0xF)
 
-	if carry && c.Flag(cpu.C) {
+	if carry && c.Flag(types.FlagC) {
 		r -= 1
 		cv -= 1
 	}
 
 	result := byte(r)
 
-	c.AF.SetHi(result)
+	c.AF().SetHi(result)
 
-	c.SetFlag(cpu.Z, result == 0)
-	c.SetFlag(cpu.N, true)
-	c.SetFlag(cpu.H, cv < 0)
-	c.SetFlag(cpu.C, r < 0)
+	c.SetFlag(types.FlagZ, result == 0)
+	c.SetFlag(types.FlagN, true)
+	c.SetFlag(types.FlagH, cv < 0)
+	c.SetFlag(types.FlagC, r < 0)
 
 	return 4
 }
 
-func instDecReg(reg *cpu.Register) (ticks byte) {
+func instDecReg(reg types.Register) (ticks byte) {
 	reg.Set(reg.Val() - 1)
 	return 8
 }
 
-func instDec8(c *cpu.CPU, val byte) (ticks byte, result byte) {
+func instDec8(c types.CPU, val byte) (ticks byte, result byte) {
 	r := val - 1
 
-	c.SetFlag(cpu.Z, r == 0)
-	c.SetFlag(cpu.N, true)
-	c.SetFlag(cpu.H, val&0x0F == 0)
+	c.SetFlag(types.FlagZ, r == 0)
+	c.SetFlag(types.FlagN, true)
+	c.SetFlag(types.FlagH, val&0x0F == 0)
 
 	return 4, r
 }
 
-func instDecRegHi(c *cpu.CPU, reg *cpu.Register) (ticks byte) {
+func instDecRegHi(c types.CPU, reg types.Register) (ticks byte) {
 	t, r := instDec8(c, reg.Hi())
 
 	reg.SetHi(r)
@@ -171,7 +171,7 @@ func instDecRegHi(c *cpu.CPU, reg *cpu.Register) (ticks byte) {
 	return t
 }
 
-func instDecRegLo(c *cpu.CPU, reg *cpu.Register) (ticks byte) {
+func instDecRegLo(c types.CPU, reg types.Register) (ticks byte) {
 	t, r := instDec8(c, reg.Lo())
 
 	reg.SetLo(r)
@@ -179,25 +179,25 @@ func instDecRegLo(c *cpu.CPU, reg *cpu.Register) (ticks byte) {
 	return t
 }
 
-func instXor(c *cpu.CPU, val byte) (ticks byte) {
-	result := c.AF.Hi() ^ val
+func instXor(c types.CPU, val byte) (ticks byte) {
+	result := c.AF().Hi() ^ val
 
-	c.AF.SetHi(result)
+	c.AF().SetHi(result)
 
-	c.SetFlag(cpu.Z, result == 0)
-	c.SetFlag(cpu.N, false)
-	c.SetFlag(cpu.H, false)
-	c.SetFlag(cpu.C, false)
+	c.SetFlag(types.FlagZ, result == 0)
+	c.SetFlag(types.FlagN, false)
+	c.SetFlag(types.FlagH, false)
+	c.SetFlag(types.FlagC, false)
 
 	return 4
 }
 
 func instJr(g *GameBoy, rel byte) (ticks byte) {
-	g.CPU.PC.Set(uint16(int32(g.CPU.PC.Val()) + int32(int8(rel))))
+	g.CPU.PC().Set(uint16(int32(g.CPU.PC().Val()) + int32(int8(rel))))
 	return 8
 }
 
-func instJrCond(g *GameBoy, flag cpu.Flag, cond bool) (ticks byte) {
+func instJrCond(g *GameBoy, flag types.Flag, cond bool) (ticks byte) {
 	rel := g.Fetch8()
 
 	if g.CPU.Flag(flag) == cond {
@@ -208,11 +208,11 @@ func instJrCond(g *GameBoy, flag cpu.Flag, cond bool) (ticks byte) {
 }
 
 func instJp(g *GameBoy, addr uint16) (ticks byte) {
-	g.CPU.PC.Set(addr)
+	g.CPU.PC().Set(addr)
 	return 4
 }
 
-func instJpCond(g *GameBoy, flag cpu.Flag, cond bool) (ticks byte) {
+func instJpCond(g *GameBoy, flag types.Flag, cond bool) (ticks byte) {
 	rel := g.Fetch16()
 
 	if g.CPU.Flag(flag) == cond {
@@ -223,13 +223,13 @@ func instJpCond(g *GameBoy, flag cpu.Flag, cond bool) (ticks byte) {
 }
 
 func instCall(g *GameBoy, addr uint16) (ticks byte) {
-	g.Stack.Push(g.CPU.PC.Val())
-	g.CPU.PC.Set(addr)
+	g.Stack.Push(g.CPU.PC().Val())
+	g.CPU.PC().Set(addr)
 
 	return 16
 }
 
-func instCallCond(g *GameBoy, flag cpu.Flag, cond bool) (ticks byte) {
+func instCallCond(g *GameBoy, flag types.Flag, cond bool) (ticks byte) {
 	addr := g.Fetch16()
 
 	if g.CPU.Flag(flag) == cond {
@@ -240,12 +240,12 @@ func instCallCond(g *GameBoy, flag cpu.Flag, cond bool) (ticks byte) {
 }
 
 func instRet(g *GameBoy) (ticks byte) {
-	g.CPU.PC.Set(g.Stack.Pop())
+	g.CPU.PC().Set(g.Stack.Pop())
 
 	return 8
 }
 
-func instRetCond(g *GameBoy, flag cpu.Flag, cond bool) (ticks byte) {
+func instRetCond(g *GameBoy, flag types.Flag, cond bool) (ticks byte) {
 	if g.CPU.Flag(flag) == cond {
 		return instRet(g) + 12
 	}

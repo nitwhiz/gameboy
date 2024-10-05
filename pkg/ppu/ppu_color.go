@@ -10,7 +10,7 @@ const (
 )
 
 func (p *PPU) getColor(c byte, address uint16) byte {
-	palette := p.MMU.Read(address)
+	palette := p.mmu.Read(address)
 
 	hi := c*2 + 1
 	lo := c * 2

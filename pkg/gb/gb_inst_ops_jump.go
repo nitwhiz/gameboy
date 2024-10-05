@@ -1,28 +1,28 @@
 package gb
 
 import (
-	"github.com/nitwhiz/gameboy/pkg/cpu"
+	"github.com/nitwhiz/gameboy/pkg/types"
 )
 
 func addJRHandlers() {
 	// JR NZ, e8
 	h.add(0x20, func(g *GameBoy) (ticks byte) {
-		return instJrCond(g, cpu.Z, false)
+		return instJrCond(g, types.FlagZ, false)
 	})
 
 	// JR NC, e8
 	h.add(0x30, func(g *GameBoy) (ticks byte) {
-		return instJrCond(g, cpu.C, false)
+		return instJrCond(g, types.FlagC, false)
 	})
 
 	// JR Z, e8
 	h.add(0x28, func(g *GameBoy) (ticks byte) {
-		return instJrCond(g, cpu.Z, true)
+		return instJrCond(g, types.FlagZ, true)
 	})
 
 	// JR C, e8
 	h.add(0x38, func(g *GameBoy) (ticks byte) {
-		return instJrCond(g, cpu.C, true)
+		return instJrCond(g, types.FlagC, true)
 	})
 
 	// JR e8
@@ -34,22 +34,22 @@ func addJRHandlers() {
 func addJPHandlers() {
 	// JP NZ, a16
 	h.add(0xC2, func(g *GameBoy) (ticks byte) {
-		return instJpCond(g, cpu.Z, false)
+		return instJpCond(g, types.FlagZ, false)
 	})
 
 	// JP NC, a16
 	h.add(0xD2, func(g *GameBoy) (ticks byte) {
-		return instJpCond(g, cpu.C, false)
+		return instJpCond(g, types.FlagC, false)
 	})
 
 	// JP Z, a16
 	h.add(0xCA, func(g *GameBoy) (ticks byte) {
-		return instJpCond(g, cpu.Z, true)
+		return instJpCond(g, types.FlagZ, true)
 	})
 
 	// JP C, a16
 	h.add(0xDA, func(g *GameBoy) (ticks byte) {
-		return instJpCond(g, cpu.C, true)
+		return instJpCond(g, types.FlagC, true)
 	})
 
 	// JP a18
@@ -59,6 +59,6 @@ func addJPHandlers() {
 
 	// JP HL
 	h.add(0xE9, func(g *GameBoy) (ticks byte) {
-		return instJp(g, g.CPU.HL.Val())
+		return instJp(g, g.CPU.HL().Val())
 	})
 }

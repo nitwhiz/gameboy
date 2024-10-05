@@ -3,42 +3,42 @@ package gb
 func addSBCHandlers() {
 	// SBC A, B
 	h.add(0x98, func(g *GameBoy) (ticks byte) {
-		return instSub(g.CPU, g.CPU.BC.Hi(), true)
+		return instSub(g.CPU, g.CPU.BC().Hi(), true)
 	})
 
 	// SBC A, C
 	h.add(0x99, func(g *GameBoy) (ticks byte) {
-		return instSub(g.CPU, g.CPU.BC.Lo(), true)
+		return instSub(g.CPU, g.CPU.BC().Lo(), true)
 	})
 
 	// SBC A, D
 	h.add(0x9A, func(g *GameBoy) (ticks byte) {
-		return instSub(g.CPU, g.CPU.DE.Hi(), true)
+		return instSub(g.CPU, g.CPU.DE().Hi(), true)
 	})
 
 	// SBC A, E
 	h.add(0x9B, func(g *GameBoy) (ticks byte) {
-		return instSub(g.CPU, g.CPU.DE.Lo(), true)
+		return instSub(g.CPU, g.CPU.DE().Lo(), true)
 	})
 
 	// SBC A, H
 	h.add(0x9C, func(g *GameBoy) (ticks byte) {
-		return instSub(g.CPU, g.CPU.HL.Hi(), true)
+		return instSub(g.CPU, g.CPU.HL().Hi(), true)
 	})
 
 	// SBC A, L
 	h.add(0x9D, func(g *GameBoy) (ticks byte) {
-		return instSub(g.CPU, g.CPU.HL.Lo(), true)
+		return instSub(g.CPU, g.CPU.HL().Lo(), true)
 	})
 
 	// SBC A, [HL]
 	h.add(0x9E, func(g *GameBoy) (ticks byte) {
-		return instSub(g.CPU, g.MMU.Read(g.CPU.HL.Val()), true) + 4
+		return instSub(g.CPU, g.MMU.Read(g.CPU.HL().Val()), true) + 4
 	})
 
 	// SBC A, A
 	h.add(0x9F, func(g *GameBoy) (ticks byte) {
-		return instSub(g.CPU, g.CPU.AF.Hi(), true)
+		return instSub(g.CPU, g.CPU.AF().Hi(), true)
 	})
 
 	// SBC A, n8

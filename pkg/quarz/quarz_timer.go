@@ -3,33 +3,33 @@ package quarz
 import (
 	"github.com/nitwhiz/gameboy/pkg/addr"
 	"github.com/nitwhiz/gameboy/pkg/bits"
-	"github.com/nitwhiz/gameboy/pkg/mmu"
+	"github.com/nitwhiz/gameboy/pkg/types"
 )
 
 type Timer struct {
 	LastTACEnabled        bool
 	TriggerOnFallingEdge  bool
 	PostTIMAOverflowTicks int
-	MMU                   *mmu.MMU
+	mmu                   types.MMU
 }
 
-func NewTimer(m *mmu.MMU) *Timer {
+func NewTimer(mmu types.MMU) *Timer {
 	return &Timer{
 		LastTACEnabled:        false,
 		TriggerOnFallingEdge:  false,
 		PostTIMAOverflowTicks: -1,
-		MMU:                   m,
+		mmu:                   mmu,
 	}
 }
 
 func (t *Timer) Tick(ticks int) {
-	tac := t.MMU.Read(addr.TAC)
-	tima := t.MMU.Read(addr.TIMA)
-	tma := t.MMU.Read(addr.TMA)
+	tac := t.mmu.Read(addr.TAC)
+	tima := t.mmu.Read(addr.TIMA)
+	tma := t.mmu.Read(addr.TMA)
 
 	nextTima := int(tima)
 
-	if t.MMU.Memory.TimerCounter == 0 && t.TriggerOnFallingEdge {
+	if t.mmu.Memory().TimerCounter() == 0 && t.TriggerOnFallingEdge {
 		t.TriggerOnFallingEdge = false
 		nextTima++
 	}
@@ -38,12 +38,12 @@ func (t *Timer) Tick(ticks int) {
 	clockSelect := bits.GetTACClockSelect(tac)
 	tacMask := GetTACMask(clockSelect)
 
-	if !tacEnabled && t.LastTACEnabled && t.MMU.Memory.TimerCounter&tacMask != 0 {
+	if !tacEnabled && t.LastTACEnabled && t.mmu.Memory().TimerCounter()&tacMask != 0 {
 		nextTima++
 	}
 
 	for range ticks {
-		t.MMU.Memory.TimerCounter++
+		t.mmu.Memory().IncTimerCounter()
 
 		if t.PostTIMAOverflowTicks > -1 {
 			t.PostTIMAOverflowTicks++
@@ -51,7 +51,7 @@ func (t *Timer) Tick(ticks int) {
 
 		if t.PostTIMAOverflowTicks == 4 {
 			nextTima = int(tma)
-			t.MMU.RequestInterrupt(addr.InterruptTimer)
+			t.mmu.RequestInterrupt(addr.InterruptTimer)
 		}
 
 		if t.PostTIMAOverflowTicks == 5 {
@@ -60,7 +60,7 @@ func (t *Timer) Tick(ticks int) {
 		}
 
 		if tacEnabled {
-			if t.MMU.Memory.TimerCounter&tacMask != 0 {
+			if t.mmu.Memory().TimerCounter()&tacMask != 0 {
 				t.TriggerOnFallingEdge = true
 			} else if t.TriggerOnFallingEdge {
 				t.TriggerOnFallingEdge = false
@@ -76,5 +76,5 @@ func (t *Timer) Tick(ticks int) {
 		nextTima = nextTima - 0x100
 	}
 
-	t.MMU.SetTIMA(byte(nextTima))
+	t.mmu.Memory().WriteIO(t.mmu.Memory().AddrIO(addr.TIMA), byte(nextTima))
 }

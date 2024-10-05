@@ -59,10 +59,6 @@ func (s *Screen) GetSprite(x, y byte) uint16 {
 	return s.Sprite[int(x)+int(y)*Width]
 }
 
-func (s *Screen) Display() PixelData {
-	return s.Buffer
-}
-
 func (s *Screen) BlitScanline(y byte) {
 	for x := range Width {
 		background := s.Background[x+int(y)*Width]

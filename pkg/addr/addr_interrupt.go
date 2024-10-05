@@ -1,11 +1,11 @@
 package addr
 
-type InterruptType byte
+import "github.com/nitwhiz/gameboy/pkg/types"
 
 const (
-	InterruptVBlank = InterruptType(0)
-	InterruptLCD    = InterruptType(1)
-	InterruptTimer  = InterruptType(2)
-	InterruptSerial = InterruptType(3)
-	InterruptJoypad = InterruptType(4)
+	InterruptVBlank = types.InterruptType(0)
+	InterruptLCD    = types.InterruptType(1)
+	InterruptTimer  = types.InterruptType(2)
+	InterruptSerial = types.InterruptType(3)
+	InterruptJoypad = types.InterruptType(4)
 )

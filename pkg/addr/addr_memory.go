@@ -24,7 +24,7 @@ const (
 	MemIOEnd   = uint16(0xFF7F)
 
 	MemHRAMBegin = uint16(0xFF80)
-	MemHRAMEnd   = uint16(0xFFFE)
+	MemHRAMEnd   = uint16(0xFFFF)
 
 	MemAudioBegin = uint16(0xFF10)
 	MemAudioEnd   = uint16(0xFF26)

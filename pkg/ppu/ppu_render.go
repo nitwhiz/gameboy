@@ -8,20 +8,20 @@ import (
 )
 
 func (p *PPU) renderBackground(lcdc byte, ly byte) {
-	scx := p.MMU.Read(addr.SCX)
-	scy := p.MMU.Read(addr.SCY)
+	scx := p.mmu.Read(addr.SCX)
+	scy := p.mmu.Read(addr.SCY)
 
-	wx := uint16(p.MMU.Read(addr.WX))
-	wy := p.MMU.Read(addr.WY)
+	wx := uint16(p.mmu.Read(addr.WX))
+	wy := p.mmu.Read(addr.WY)
 
 	if wx >= 1 {
 		wx -= 7
 	}
 
-	tileDataBaseAddr := TILE_BASE_ADDR_SIGNED
+	tileDataBaseAddr := TileBaseAddrSigned
 
 	if bits.Test(lcdc, addr.LCDC_TILE_DATA_SELECT) {
-		tileDataBaseAddr = TILE_BASE_ADDR_UNSIGNED
+		tileDataBaseAddr = TileBaseAddrUnsigned
 	}
 
 	lywy := ly >= wy
@@ -35,33 +35,33 @@ func (p *PPU) renderBackground(lcdc byte, ly byte) {
 			hadWindowPixels = true
 		}
 
-		mapAddr := BG_WINDOW_TILE_MAP_ADDR_9800
+		mapAddr := BgWindowTileMapAddr9800
 
 		if win {
 			if bits.Test(lcdc, addr.LCDC_WINDOW_TILE_MAP_SELECT) {
-				mapAddr = BG_WINDOW_TILE_MAP_ADDR_9C00
+				mapAddr = BgWindowTileMapAddr9C00
 			}
 		} else {
 			if bits.Test(lcdc, addr.LCDC_BG_TILE_MAP_SELECT) {
-				mapAddr = BG_WINDOW_TILE_MAP_ADDR_9C00
+				mapAddr = BgWindowTileMapAddr9C00
 			}
 		}
 
 		mapOffset := uint16(0)
 
 		if win {
-			mapOffset = ((p.WindowLineCounter / 8) * 32) + ((pixelX - wx) / 8)
+			mapOffset = ((p.windowLineCounter / 8) * 32) + ((pixelX - wx) / 8)
 		} else {
 			mapOffset = ((((uint16(ly) + uint16(scy)) & 0xFF) / 8) * 32) + ((((uint16(scx) + pixelX) & 0xFF) / 8) & 0x1F)
 		}
 
 		mapOffset &= uint16(0x03FF)
 
-		tileNo := p.MMU.Read(mapAddr + mapOffset)
+		tileNo := p.mmu.Read(mapAddr + mapOffset)
 
 		tileDataAddr := uint16(0)
 
-		if tileDataBaseAddr == TILE_BASE_ADDR_UNSIGNED {
+		if tileDataBaseAddr == TileBaseAddrUnsigned {
 			tileDataAddr = tileDataBaseAddr + (uint16(tileNo) * 16)
 		} else {
 			tileDataAddr = tileDataBaseAddr + (uint16(tileNo+128) * 16)
@@ -74,13 +74,13 @@ func (p *PPU) renderBackground(lcdc byte, ly byte) {
 		tileDataLoAddr := tileDataAddr
 
 		if win {
-			tileDataLoAddr += 2 * (p.WindowLineCounter % 8)
+			tileDataLoAddr += 2 * (p.windowLineCounter % 8)
 		} else {
 			tileDataLoAddr += 2 * (((uint16(ly) + uint16(scy)) & 0xFF) % 8)
 		}
 
-		tileDataLo := p.MMU.Read(tileDataLoAddr)
-		tileDataHi := p.MMU.Read(tileDataLoAddr + 1)
+		tileDataLo := p.mmu.Read(tileDataLoAddr)
+		tileDataHi := p.mmu.Read(tileDataLoAddr + 1)
 
 		tileDataColorBit := 7 - byte((pixelX+uint16(scx))&0xFF)%8
 
@@ -91,11 +91,11 @@ func (p *PPU) renderBackground(lcdc byte, ly byte) {
 
 		col := p.getColor(colNum, addr.BGP)
 
-		p.Screen.SetBackground(byte(pixelX), ly, colNum, col)
+		p.screen.SetBackground(byte(pixelX), ly, colNum, col)
 	}
 
 	if hadWindowPixels {
-		p.WindowLineCounter++
+		p.windowLineCounter++
 	}
 }
 
@@ -114,8 +114,8 @@ func (p *PPU) renderSprites(lcdc byte, ly byte) {
 	for s := uint16(0); s < 40; s++ {
 		index := s * 4
 
-		y := uint32(p.MMU.Read(addr.MemOAMBegin + index))
-		x := uint32(p.MMU.Read(addr.MemOAMBegin + index + 1))
+		y := uint32(p.mmu.Read(addr.MemOAMBegin + index))
+		x := uint32(p.mmu.Read(addr.MemOAMBegin + index + 1))
 
 		if x > 0 && scanline+16 >= y && scanline+16 < y+ys {
 			skip := false
@@ -149,14 +149,14 @@ func (p *PPU) renderSprites(lcdc byte, ly byte) {
 		x := int32((o>>24)&0xFF) - 8
 		y := int32(o&0xFF) - 16
 
-		tileNo := p.MMU.Read(addr.MemOAMBegin + index + 2)
+		tileNo := p.mmu.Read(addr.MemOAMBegin + index + 2)
 
 		if ys == 16 {
 			// bit 0 is ignored for 8x16
 			tileNo = tileNo & 0xFE
 		}
 
-		attributes := p.MMU.Read(addr.MemOAMBegin + index + 3)
+		attributes := p.mmu.Read(addr.MemOAMBegin + index + 3)
 
 		xFlip, yFlip, bgPriority, pal := bits.OAMAttributes(attributes)
 
@@ -168,8 +168,8 @@ func (p *PPU) renderSprites(lcdc byte, ly byte) {
 
 		dAddress := addr.MemVRAMBegin + (uint16(tileNo) * 16) + uint16(line*2)
 
-		tileDataLo := p.MMU.Read(dAddress)
-		tileDataHi := p.MMU.Read(dAddress + 1)
+		tileDataLo := p.mmu.Read(dAddress)
+		tileDataHi := p.mmu.Read(dAddress + 1)
 
 		for tilePixel := byte(0); tilePixel < 8; tilePixel++ {
 			pixel := int16(x) + int16(7-tilePixel)
@@ -188,7 +188,7 @@ func (p *PPU) renderSprites(lcdc byte, ly byte) {
 
 			col := p.getColor(colNum, pal)
 
-			p.Screen.SetSprite(byte(pixel), byte(scanline), bgPriority, colNum, col)
+			p.screen.SetSprite(byte(pixel), byte(scanline), bgPriority, colNum, col)
 		}
 	}
 }
@@ -202,5 +202,5 @@ func (p *PPU) renderScanline(lcdc byte, ly byte) {
 		p.renderSprites(lcdc, ly)
 	}
 
-	p.Screen.BlitScanline(ly)
+	p.screen.BlitScanline(ly)
 }

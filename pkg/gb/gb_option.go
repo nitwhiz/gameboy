@@ -5,7 +5,7 @@ import (
 	"github.com/nitwhiz/gameboy/pkg/cartridge"
 )
 
-var ErrMissingMMU = errors.New("game boy is missing a MMU, cannot load rom data")
+var ErrMissingMMU = errors.New("game boy is missing a mmu, cannot load rom data")
 
 type GameBoyOption func(g *GameBoy) error
 
@@ -21,7 +21,7 @@ func WithRom(romData []byte) GameBoyOption {
 			return err
 		}
 
-		g.MMU.Cartridge = cart
+		g.MMU.SetCartridge(cart)
 
 		return nil
 	}
@@ -33,7 +33,7 @@ func WithSerialReceiver(receiver func(byte)) GameBoyOption {
 			return ErrMissingMMU
 		}
 
-		g.MMU.SerialReceiver = receiver
+		g.MMU.SetSerialReceiver(receiver)
 
 		return nil
 	}

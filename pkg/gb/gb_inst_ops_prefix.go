@@ -2,68 +2,68 @@ package gb
 
 import (
 	"github.com/nitwhiz/gameboy/pkg/bits"
-	"github.com/nitwhiz/gameboy/pkg/cpu"
+	"github.com/nitwhiz/gameboy/pkg/types"
 )
 
 func initPHandlers() {
 	getters := [8]func(g *GameBoy) (result byte, ticks byte){
 		func(g *GameBoy) (result byte, ticks byte) {
-			return g.CPU.BC.Hi(), 4
+			return g.CPU.BC().Hi(), 4
 		},
 		func(g *GameBoy) (result byte, ticks byte) {
-			return g.CPU.BC.Lo(), 4
+			return g.CPU.BC().Lo(), 4
 		},
 		func(g *GameBoy) (result byte, ticks byte) {
-			return g.CPU.DE.Hi(), 4
+			return g.CPU.DE().Hi(), 4
 		},
 		func(g *GameBoy) (result byte, ticks byte) {
-			return g.CPU.DE.Lo(), 4
+			return g.CPU.DE().Lo(), 4
 		},
 		func(g *GameBoy) (result byte, ticks byte) {
-			return g.CPU.HL.Hi(), 4
+			return g.CPU.HL().Hi(), 4
 		},
 		func(g *GameBoy) (result byte, ticks byte) {
-			return g.CPU.HL.Lo(), 4
+			return g.CPU.HL().Lo(), 4
 		},
 		func(g *GameBoy) (result byte, ticks byte) {
-			return g.MMU.Read(g.CPU.HL.Val()), 8
+			return g.MMU.Read(g.CPU.HL().Val()), 8
 		},
 		func(g *GameBoy) (result byte, ticks byte) {
-			return g.CPU.AF.Hi(), 4
+			return g.CPU.AF().Hi(), 4
 		},
 	}
 
 	setters := [8]func(g *GameBoy, val byte) (ticks byte){
 		func(g *GameBoy, val byte) (ticks byte) {
-			g.CPU.BC.SetHi(val)
+			g.CPU.BC().SetHi(val)
 			return 4
 		},
 		func(g *GameBoy, val byte) (ticks byte) {
-			g.CPU.BC.SetLo(val)
+			g.CPU.BC().SetLo(val)
 			return 4
 		},
 		func(g *GameBoy, val byte) (ticks byte) {
-			g.CPU.DE.SetHi(val)
+			g.CPU.DE().SetHi(val)
 			return 4
 		},
 		func(g *GameBoy, val byte) (ticks byte) {
-			g.CPU.DE.SetLo(val)
+			g.CPU.DE().SetLo(val)
 			return 4
 		},
 		func(g *GameBoy, val byte) (ticks byte) {
-			g.CPU.HL.SetHi(val)
+			g.CPU.HL().SetHi(val)
 			return 4
 		},
 		func(g *GameBoy, val byte) (ticks byte) {
-			g.CPU.HL.SetLo(val)
+			g.CPU.HL().SetLo(val)
 			return 4
 		},
 		func(g *GameBoy, val byte) (ticks byte) {
-			g.MMU.Write(g.CPU.HL.Val(), val)
+			g.MMU.Write(g.CPU.HL().Val(), val)
 			return 8
 		},
 		func(g *GameBoy, val byte) (ticks byte) {
-			g.CPU.AF.SetHi(val)
+			g.CPU.AF().SetHi(val)
 			return 4
 		},
 	}
@@ -80,10 +80,10 @@ func initPHandlers() {
 
 			setTicks := setters[i](g, rot)
 
-			g.CPU.SetFlag(cpu.Z, rot == 0)
-			g.CPU.SetFlag(cpu.N, false)
-			g.CPU.SetFlag(cpu.H, false)
-			g.CPU.SetFlag(cpu.C, carry == 1)
+			g.CPU.SetFlag(types.FlagZ, rot == 0)
+			g.CPU.SetFlag(types.FlagN, false)
+			g.CPU.SetFlag(types.FlagH, false)
+			g.CPU.SetFlag(types.FlagC, carry == 1)
 
 			return getTicks + setTicks
 		})
@@ -97,10 +97,10 @@ func initPHandlers() {
 
 			setTicks := setters[i](g, rot)
 
-			g.CPU.SetFlag(cpu.Z, rot == 0)
-			g.CPU.SetFlag(cpu.N, false)
-			g.CPU.SetFlag(cpu.H, false)
-			g.CPU.SetFlag(cpu.C, carry == 1)
+			g.CPU.SetFlag(types.FlagZ, rot == 0)
+			g.CPU.SetFlag(types.FlagN, false)
+			g.CPU.SetFlag(types.FlagH, false)
+			g.CPU.SetFlag(types.FlagC, carry == 1)
 
 			return getTicks + setTicks
 		})
@@ -112,7 +112,7 @@ func initPHandlers() {
 			carry := val >> 7
 			oldCarry := byte(0)
 
-			if g.CPU.Flag(cpu.C) {
+			if g.CPU.Flag(types.FlagC) {
 				oldCarry = 1
 			}
 
@@ -120,10 +120,10 @@ func initPHandlers() {
 
 			setTicks := setters[i](g, rot)
 
-			g.CPU.SetFlag(cpu.Z, rot == 0)
-			g.CPU.SetFlag(cpu.N, false)
-			g.CPU.SetFlag(cpu.H, false)
-			g.CPU.SetFlag(cpu.C, carry == 1)
+			g.CPU.SetFlag(types.FlagZ, rot == 0)
+			g.CPU.SetFlag(types.FlagN, false)
+			g.CPU.SetFlag(types.FlagH, false)
+			g.CPU.SetFlag(types.FlagC, carry == 1)
 
 			return getTicks + setTicks
 		})
@@ -135,7 +135,7 @@ func initPHandlers() {
 			carry := val & 1
 			oldCarry := byte(0)
 
-			if g.CPU.Flag(cpu.C) {
+			if g.CPU.Flag(types.FlagC) {
 				oldCarry = 1
 			}
 
@@ -143,10 +143,10 @@ func initPHandlers() {
 
 			setTicks := setters[i](g, rot)
 
-			g.CPU.SetFlag(cpu.Z, rot == 0)
-			g.CPU.SetFlag(cpu.N, false)
-			g.CPU.SetFlag(cpu.H, false)
-			g.CPU.SetFlag(cpu.C, carry == 1)
+			g.CPU.SetFlag(types.FlagZ, rot == 0)
+			g.CPU.SetFlag(types.FlagN, false)
+			g.CPU.SetFlag(types.FlagH, false)
+			g.CPU.SetFlag(types.FlagC, carry == 1)
 
 			return getTicks + setTicks
 		})
@@ -160,10 +160,10 @@ func initPHandlers() {
 
 			setTicks := setters[i](g, rot)
 
-			g.CPU.SetFlag(cpu.Z, rot == 0)
-			g.CPU.SetFlag(cpu.N, false)
-			g.CPU.SetFlag(cpu.H, false)
-			g.CPU.SetFlag(cpu.C, carry == 1)
+			g.CPU.SetFlag(types.FlagZ, rot == 0)
+			g.CPU.SetFlag(types.FlagN, false)
+			g.CPU.SetFlag(types.FlagH, false)
+			g.CPU.SetFlag(types.FlagC, carry == 1)
 
 			return getTicks + setTicks
 		})
@@ -176,10 +176,10 @@ func initPHandlers() {
 
 			setTicks := setters[i](g, rot)
 
-			g.CPU.SetFlag(cpu.Z, rot == 0)
-			g.CPU.SetFlag(cpu.N, false)
-			g.CPU.SetFlag(cpu.H, false)
-			g.CPU.SetFlag(cpu.C, val&1 == 1)
+			g.CPU.SetFlag(types.FlagZ, rot == 0)
+			g.CPU.SetFlag(types.FlagN, false)
+			g.CPU.SetFlag(types.FlagH, false)
+			g.CPU.SetFlag(types.FlagC, val&1 == 1)
 
 			return getTicks + setTicks
 		})
@@ -192,10 +192,10 @@ func initPHandlers() {
 
 			setTicks := setters[i](g, swapped)
 
-			g.CPU.SetFlag(cpu.Z, swapped == 0)
-			g.CPU.SetFlag(cpu.N, false)
-			g.CPU.SetFlag(cpu.H, false)
-			g.CPU.SetFlag(cpu.C, false)
+			g.CPU.SetFlag(types.FlagZ, swapped == 0)
+			g.CPU.SetFlag(types.FlagN, false)
+			g.CPU.SetFlag(types.FlagH, false)
+			g.CPU.SetFlag(types.FlagC, false)
 
 			return getTicks + setTicks
 		})
@@ -209,10 +209,10 @@ func initPHandlers() {
 
 			setTicks := setters[i](g, rot)
 
-			g.CPU.SetFlag(cpu.Z, rot == 0)
-			g.CPU.SetFlag(cpu.N, false)
-			g.CPU.SetFlag(cpu.H, false)
-			g.CPU.SetFlag(cpu.C, carry == 1)
+			g.CPU.SetFlag(types.FlagZ, rot == 0)
+			g.CPU.SetFlag(types.FlagN, false)
+			g.CPU.SetFlag(types.FlagH, false)
+			g.CPU.SetFlag(types.FlagC, carry == 1)
 
 			return getTicks + setTicks
 		})
@@ -224,9 +224,9 @@ func initPHandlers() {
 			p.add(0x40+0x08*j+i, func(g *GameBoy) (ticks byte) {
 				val, ticks := getters[i](g)
 
-				g.CPU.SetFlag(cpu.Z, (val>>j)&1 == 0)
-				g.CPU.SetFlag(cpu.N, false)
-				g.CPU.SetFlag(cpu.H, true)
+				g.CPU.SetFlag(types.FlagZ, (val>>j)&1 == 0)
+				g.CPU.SetFlag(types.FlagN, false)
+				g.CPU.SetFlag(types.FlagH, true)
 
 				return ticks + 4
 			})

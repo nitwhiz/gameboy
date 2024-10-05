@@ -3,42 +3,42 @@ package gb
 func addCPHandlers() {
 	// CP A, B
 	h.add(0xB8, func(g *GameBoy) (ticks byte) {
-		return instCp(g.CPU, g.CPU.BC.Hi())
+		return instCp(g.CPU, g.CPU.BC().Hi())
 	})
 
 	// CP A, C
 	h.add(0xB9, func(g *GameBoy) (ticks byte) {
-		return instCp(g.CPU, g.CPU.BC.Lo())
+		return instCp(g.CPU, g.CPU.BC().Lo())
 	})
 
 	// CP A, D
 	h.add(0xBA, func(g *GameBoy) (ticks byte) {
-		return instCp(g.CPU, g.CPU.DE.Hi())
+		return instCp(g.CPU, g.CPU.DE().Hi())
 	})
 
 	// CP A, E
 	h.add(0xBB, func(g *GameBoy) (ticks byte) {
-		return instCp(g.CPU, g.CPU.DE.Lo())
+		return instCp(g.CPU, g.CPU.DE().Lo())
 	})
 
 	// CP A, H
 	h.add(0xBC, func(g *GameBoy) (ticks byte) {
-		return instCp(g.CPU, g.CPU.HL.Hi())
+		return instCp(g.CPU, g.CPU.HL().Hi())
 	})
 
 	// CP A, L
 	h.add(0xBD, func(g *GameBoy) (ticks byte) {
-		return instCp(g.CPU, g.CPU.HL.Lo())
+		return instCp(g.CPU, g.CPU.HL().Lo())
 	})
 
 	// CP A, [HL]
 	h.add(0xBE, func(g *GameBoy) (ticks byte) {
-		return instCp(g.CPU, g.MMU.Read(g.CPU.HL.Val())) + 4
+		return instCp(g.CPU, g.MMU.Read(g.CPU.HL().Val())) + 4
 	})
 
 	// CP A, A
 	h.add(0xBF, func(g *GameBoy) (ticks byte) {
-		return instCp(g.CPU, g.CPU.AF.Hi())
+		return instCp(g.CPU, g.CPU.AF().Hi())
 	})
 
 	// CP A, n8

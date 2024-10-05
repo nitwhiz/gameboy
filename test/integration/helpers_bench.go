@@ -80,7 +80,7 @@ func (r *romBenchmarkCase) checkExpectedScreenshot() {
 
 	for x := 0; x < screen.Width; x++ {
 		for y := 0; y < screen.Height; y++ {
-			if (*r.expectedScreenshot).At(x, y) != r.gameBoy.PPU.Screen.At(x, y) {
+			if (*r.expectedScreenshot).At(x, y) != r.gameBoy.PPU.Screen().At(x, y) {
 				return
 			}
 		}

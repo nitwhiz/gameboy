@@ -5,25 +5,28 @@ import (
 	"github.com/nitwhiz/gameboy/pkg/cpu"
 	"github.com/nitwhiz/gameboy/pkg/input"
 	"github.com/nitwhiz/gameboy/pkg/interrupt"
+	"github.com/nitwhiz/gameboy/pkg/memory"
 	"github.com/nitwhiz/gameboy/pkg/mmu"
 	"github.com/nitwhiz/gameboy/pkg/ppu"
 	"github.com/nitwhiz/gameboy/pkg/quarz"
+	"github.com/nitwhiz/gameboy/pkg/screen"
 	"github.com/nitwhiz/gameboy/pkg/stack"
+	"github.com/nitwhiz/gameboy/pkg/types"
 	"log/slog"
 	"sync"
 )
 
 type GameBoy struct {
-	CPU *cpu.CPU
-	MMU *mmu.MMU
+	CPU types.CPU
+	MMU types.MMU
 
 	Timer *quarz.Timer
-	Input *input.State
+	Input types.InputState
 
 	IM    *interrupt.Manager
-	Stack *stack.Stack
+	Stack types.Stack
 
-	PPU *ppu.PPU
+	PPU types.PPU
 
 	HaltBug int
 
@@ -35,30 +38,23 @@ func New(options ...GameBoyOption) (*GameBoy, error) {
 
 	in := input.NewState()
 
-	m := mmu.New(in)
+	m := mmu.New(in, memory.New())
 
-	s := stack.Stack{
-		CPU: c,
-		MMU: m,
-	}
+	s := stack.NewStack(c, m)
 
 	t := quarz.NewTimer(m)
 
-	i := interrupt.Manager{
-		CPU:   c,
-		MMU:   m,
-		Stack: &s,
-	}
+	i := interrupt.NewManager(c, m, s)
 
-	g := ppu.New(m)
+	g := ppu.New(m, screen.New())
 
 	gameBoy := GameBoy{
 		CPU:   c,
 		MMU:   m,
 		Timer: t,
 		Input: in,
-		Stack: &s,
-		IM:    &i,
+		Stack: s,
+		IM:    i,
 		PPU:   g,
 		mu:    &sync.Mutex{},
 	}
@@ -100,7 +96,7 @@ func (g *GameBoy) Update(ctx context.Context) {
 
 		ticks := g.ServiceInterrupts()
 
-		if g.CPU.Halt {
+		if g.CPU.Halt() {
 			// this is not accurate
 			ticks += 1
 		} else {
@@ -108,7 +104,7 @@ func (g *GameBoy) Update(ctx context.Context) {
 
 			if g.HaltBug > 0 {
 				if g.HaltBug == 1 {
-					g.CPU.PC.Set(g.CPU.PC.Val() - 1)
+					g.CPU.PC().Set(g.CPU.PC().Val() - 1)
 				}
 
 				g.HaltBug--
