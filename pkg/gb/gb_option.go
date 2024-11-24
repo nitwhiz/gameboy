@@ -11,7 +11,7 @@ type GameBoyOption func(g *GameBoy) error
 
 func WithRom(romData []byte) GameBoyOption {
 	return func(g *GameBoy) error {
-		if g.MMU == nil {
+		if g.MMU() == nil {
 			return ErrMissingMMU
 		}
 
@@ -21,7 +21,7 @@ func WithRom(romData []byte) GameBoyOption {
 			return err
 		}
 
-		g.MMU.SetCartridge(cart)
+		g.MMU().SetCartridge(cart)
 
 		return nil
 	}
@@ -29,11 +29,11 @@ func WithRom(romData []byte) GameBoyOption {
 
 func WithSerialReceiver(receiver func(byte)) GameBoyOption {
 	return func(g *GameBoy) error {
-		if g.MMU == nil {
+		if g.MMU() == nil {
 			return ErrMissingMMU
 		}
 
-		g.MMU.SetSerialReceiver(receiver)
+		g.MMU().SetSerialReceiver(receiver)
 
 		return nil
 	}

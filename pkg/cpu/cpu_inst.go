@@ -1,12 +1,13 @@
-package gb
+package cpu
 
 import (
 	"fmt"
+	"github.com/nitwhiz/gameboy/pkg/types"
 	"log/slog"
 	"sync"
 )
 
-type handler func(g *GameBoy) (ticks byte)
+type handler func(g types.GameBoy) (ticks byte)
 
 type table [0x100]handler
 
@@ -32,8 +33,9 @@ func (i *table) handler(code byte) handler {
 	return i[code]
 }
 
-func (i *table) executeNextOpcode(g *GameBoy) (ticks byte) {
-	code := g.Fetch8()
+// todo: this will be handled in cpu
+func (i *table) executeNextOpcode(g types.GameBoy) (ticks byte) {
+	code := g.CPU().Fetch8()
 	hand := i.handler(code)
 
 	if hand == nil {

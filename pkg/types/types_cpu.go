@@ -14,6 +14,9 @@ const (
 )
 
 type CPU interface {
+	Start()
+	Stop()
+
 	AF() Register
 	BC() Register
 	DE() Register
@@ -26,7 +29,8 @@ type CPU interface {
 	SetHalt(halt bool)
 	Flag(f Flag) bool
 	SetFlag(f Flag, v bool)
-	IncPC() uint16
+	Fetch8() byte
+	Fetch16() uint16
 }
 
 type Register interface {

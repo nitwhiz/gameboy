@@ -3,6 +3,7 @@ package integration
 import (
 	"bytes"
 	"context"
+	"github.com/nitwhiz/gameboy/pkg/cpu"
 	"github.com/nitwhiz/gameboy/pkg/gb"
 	"github.com/nitwhiz/gameboy/pkg/screen"
 	"image"
@@ -80,7 +81,7 @@ func (r *romBenchmarkCase) checkExpectedScreenshot() {
 
 	for x := 0; x < screen.Width; x++ {
 		for y := 0; y < screen.Height; y++ {
-			if (*r.expectedScreenshot).At(x, y) != r.gameBoy.PPU.Screen().At(x, y) {
+			if (*r.expectedScreenshot).At(x, y) != r.gameBoy.PPU().Screen().At(x, y) {
 				return
 			}
 		}
@@ -112,7 +113,7 @@ func (r *romBenchmarkCase) runGameBoy() int {
 }
 
 func runRomBenchmark(b *testing.B, serialOutCallbacks []serialOutCallbackCreator, romPath string, ctx context.Context) {
-	gb.InitHandlers()
+	cpu.InitHandlers()
 
 	var serialData []byte
 

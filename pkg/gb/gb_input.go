@@ -11,5 +11,5 @@ func (g *GameBoy) PressButton(button types.ButtonType) {
 
 func (g *GameBoy) ReleaseButton(button types.ButtonType) {
 	g.Input.Release(button)
-	g.MMU.RequestInterrupt(addr.InterruptJoypad)
+	g.MMU().RequestInterrupt(addr.InterruptJoypad)
 }

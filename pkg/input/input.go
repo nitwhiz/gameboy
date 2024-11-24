@@ -24,8 +24,8 @@ type State struct {
 
 func NewState() *State {
 	return &State{
-		abss: 0xFF,
-		dpad: 0xFF,
+		abss: 0x0F,
+		dpad: 0x0F,
 	}
 }
 

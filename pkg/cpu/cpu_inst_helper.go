@@ -1,4 +1,4 @@
-package gb
+package cpu
 
 import (
 	"github.com/nitwhiz/gameboy/pkg/types"
@@ -192,61 +192,61 @@ func instXor(c types.CPU, val byte) (ticks byte) {
 	return 4
 }
 
-func instJr(g *GameBoy, rel byte) (ticks byte) {
-	g.CPU.PC().Set(uint16(int32(g.CPU.PC().Val()) + int32(int8(rel))))
+func instJr(g types.GameBoy, rel byte) (ticks byte) {
+	g.CPU().PC().Set(uint16(int32(g.CPU().PC().Val()) + int32(int8(rel))))
 	return 8
 }
 
-func instJrCond(g *GameBoy, flag types.Flag, cond bool) (ticks byte) {
-	rel := g.Fetch8()
+func instJrCond(g types.GameBoy, flag types.Flag, cond bool) (ticks byte) {
+	rel := g.CPU().Fetch8()
 
-	if g.CPU.Flag(flag) == cond {
+	if g.CPU().Flag(flag) == cond {
 		return instJr(g, rel) + 4
 	}
 
 	return 8
 }
 
-func instJp(g *GameBoy, addr uint16) (ticks byte) {
-	g.CPU.PC().Set(addr)
+func instJp(g types.GameBoy, addr uint16) (ticks byte) {
+	g.CPU().PC().Set(addr)
 	return 4
 }
 
-func instJpCond(g *GameBoy, flag types.Flag, cond bool) (ticks byte) {
-	rel := g.Fetch16()
+func instJpCond(g types.GameBoy, flag types.Flag, cond bool) (ticks byte) {
+	rel := g.CPU().Fetch16()
 
-	if g.CPU.Flag(flag) == cond {
+	if g.CPU().Flag(flag) == cond {
 		return instJp(g, rel) + 12
 	}
 
 	return 12
 }
 
-func instCall(g *GameBoy, addr uint16) (ticks byte) {
-	g.Stack.Push(g.CPU.PC().Val())
-	g.CPU.PC().Set(addr)
+func instCall(g types.GameBoy, addr uint16) (ticks byte) {
+	g.Stack().Push(g.CPU().PC().Val())
+	g.CPU().PC().Set(addr)
 
 	return 16
 }
 
-func instCallCond(g *GameBoy, flag types.Flag, cond bool) (ticks byte) {
-	addr := g.Fetch16()
+func instCallCond(g types.GameBoy, flag types.Flag, cond bool) (ticks byte) {
+	addr := g.CPU().Fetch16()
 
-	if g.CPU.Flag(flag) == cond {
+	if g.CPU().Flag(flag) == cond {
 		return instCall(g, addr) + 8
 	}
 
 	return 12
 }
 
-func instRet(g *GameBoy) (ticks byte) {
-	g.CPU.PC().Set(g.Stack.Pop())
+func instRet(g types.GameBoy) (ticks byte) {
+	g.CPU().PC().Set(g.Stack().Pop())
 
 	return 8
 }
 
-func instRetCond(g *GameBoy, flag types.Flag, cond bool) (ticks byte) {
-	if g.CPU.Flag(flag) == cond {
+func instRetCond(g types.GameBoy, flag types.Flag, cond bool) (ticks byte) {
+	if g.CPU().Flag(flag) == cond {
 		return instRet(g) + 12
 	}
 

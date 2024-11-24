@@ -17,16 +17,16 @@ import (
 )
 
 type GameBoy struct {
-	CPU types.CPU
-	MMU types.MMU
+	cpu types.CPU
+	mmu types.MMU
 
 	Timer *quarz.Timer
 	Input types.InputState
 
 	IM    *interrupt.Manager
-	Stack types.Stack
+	stack types.Stack
 
-	PPU types.PPU
+	ppu types.PPU
 
 	HaltBug int
 
@@ -34,11 +34,11 @@ type GameBoy struct {
 }
 
 func New(options ...GameBoyOption) (*GameBoy, error) {
-	c := cpu.New()
-
 	in := input.NewState()
 
 	m := mmu.New(in, memory.New())
+
+	c := cpu.New(context.Background(), m)
 
 	s := stack.NewStack(c, m)
 
@@ -49,13 +49,13 @@ func New(options ...GameBoyOption) (*GameBoy, error) {
 	g := ppu.New(m, screen.New())
 
 	gameBoy := GameBoy{
-		CPU:   c,
-		MMU:   m,
+		cpu:   c,
+		mmu:   m,
 		Timer: t,
 		Input: in,
-		Stack: s,
+		stack: s,
 		IM:    i,
-		PPU:   g,
+		ppu:   g,
 		mu:    &sync.Mutex{},
 	}
 
@@ -68,6 +68,22 @@ func New(options ...GameBoyOption) (*GameBoy, error) {
 	return &gameBoy, nil
 }
 
+func (g *GameBoy) CPU() types.CPU {
+	return g.cpu
+}
+
+func (g *GameBoy) MMU() types.MMU {
+	return g.MMU()
+}
+
+func (g *GameBoy) Stack() types.Stack {
+	return g.stack
+}
+
+func (g *GameBoy) PPU() types.PPU {
+	return g.ppu
+}
+
 func (g *GameBoy) Lock() {
 	g.mu.Lock()
 }
@@ -76,11 +92,25 @@ func (g *GameBoy) Unlock() {
 	g.mu.Unlock()
 }
 
+func (g *GameBoy) Start() {
+	if g.MMU().Cartridge == nil {
+		slog.Warn("missing cartridge, not starting")
+		return
+	}
+
+	g.cpu.Start()
+}
+
+func (g *GameBoy) Stop() {
+	g.cpu.Stop()
+}
+
+// todo: using ticks now, break this down
 func (g *GameBoy) Update(ctx context.Context) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
-	if g.MMU.Cartridge == nil {
+	if g.MMU().Cartridge == nil {
 		slog.Warn("missing cartridge, update skipped")
 		return
 	}
@@ -96,23 +126,15 @@ func (g *GameBoy) Update(ctx context.Context) {
 
 		ticks := g.ServiceInterrupts()
 
-		if g.CPU.Halt() {
+		if g.cpu.Halt() {
 			// this is not accurate
 			ticks += 1
 		} else {
-			ticks += int(h.executeNextOpcode(g))
-
-			if g.HaltBug > 0 {
-				if g.HaltBug == 1 {
-					g.CPU.PC().Set(g.CPU.PC().Val() - 1)
-				}
-
-				g.HaltBug--
-			}
+			//ticks += int(cpu.h.executeNextOpcode(g))
 		}
 
 		g.Timer.Tick(ticks)
-		g.PPU.Update(ticks)
+		g.ppu.Update(ticks)
 
 		executedTicks += ticks
 	}

@@ -1,4 +1,4 @@
-package gb
+package cpu
 
 import (
 	"encoding/json"
