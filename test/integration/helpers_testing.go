@@ -3,6 +3,7 @@ package integration
 import (
 	"bytes"
 	"context"
+	"errors"
 	"github.com/nitwhiz/gameboy/pkg/cpu"
 	"github.com/nitwhiz/gameboy/pkg/gb"
 	"github.com/nitwhiz/gameboy/pkg/screen"
@@ -13,9 +14,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
-
-const defaultMaxFrames = 5000
 
 type romTestCase struct {
 	t                  *testing.T
@@ -23,7 +23,6 @@ type romTestCase struct {
 	expectedScreenshot *image.Image
 	ctx                context.Context
 	cancel             context.CancelFunc
-	maxFrames          int
 }
 
 type serialOutCallbackFunc func(b byte) (bool, bool)
@@ -36,9 +35,10 @@ func newRomTestCase(t *testing.T, romPath string, expectedScreenshot *image.Imag
 		t.Fatal(err)
 	}
 
-	ctx, cancel := context.WithCancel(ctx)
+	ctx, cancel := context.WithTimeout(ctx, time.Second*20)
 
 	g, err := gb.New(
+		ctx,
 		gb.WithSerialReceiver(func(b byte) {
 			for _, serialOutCallback := range serialOutCallbacks {
 				cont, ok := serialOutCallback(b)
@@ -67,24 +67,27 @@ func newRomTestCase(t *testing.T, romPath string, expectedScreenshot *image.Imag
 		expectedScreenshot: expectedScreenshot,
 		ctx:                ctx,
 		cancel:             cancel,
-		maxFrames:          defaultMaxFrames,
 	}
 }
 
 func (r *romTestCase) runGameBoy() {
-	frames := r.maxFrames
+	r.gameBoy.Start()
 
-	for ; frames > 0; frames-- {
+	for {
 		select {
 		case <-r.ctx.Done():
+			err := r.ctx.Err()
+
+			if errors.Is(err, context.DeadlineExceeded) {
+				r.t.Error(err)
+				r.t.Fail()
+			}
+
 			return
 		default:
-			r.gameBoy.Update(r.ctx)
-			r.checkExpectedScreenshot()
+			break
 		}
 	}
-
-	r.t.Errorf("game boy ran for at least %d frames", r.maxFrames)
 }
 
 func cleanupOutputs(t *testing.T) {
@@ -141,13 +144,15 @@ func runRomTest(t *testing.T, serialOutCallbacks []serialOutCallbackFunc, romPat
 	var serialData []byte
 
 	serialCallbacks := append(
-		serialOutCallbacks,
+		[]serialOutCallbackFunc{},
 		func(b byte) (bool, bool) {
 			serialData = append(serialData, b)
 
 			return true, true
 		},
 	)
+
+	serialCallbacks = append(serialCallbacks, serialOutCallbacks...)
 
 	dirName, fileName := filepath.Split(romPath)
 	expectedScreenshotPath := filepath.Join(dirName, strings.TrimSuffix(fileName, filepath.Ext(fileName))+"-expected.png")

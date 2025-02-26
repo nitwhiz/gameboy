@@ -14,9 +14,6 @@ const (
 )
 
 type CPU interface {
-	Start()
-	Stop()
-
 	AF() Register
 	BC() Register
 	DE() Register

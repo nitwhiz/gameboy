@@ -14,6 +14,7 @@ import (
 	"github.com/nitwhiz/gameboy/pkg/types"
 	"log/slog"
 	"sync"
+	"time"
 )
 
 type GameBoy struct {
@@ -30,15 +31,20 @@ type GameBoy struct {
 
 	HaltBug int
 
+	ticker *time.Ticker
+	ctx    context.Context
+	cancel context.CancelFunc
+	wg     *sync.WaitGroup
+
 	mu *sync.Mutex
 }
 
-func New(options ...GameBoyOption) (*GameBoy, error) {
+func New(ctx context.Context, options ...GameBoyOption) (*GameBoy, error) {
 	in := input.NewState()
 
 	m := mmu.New(in, memory.New())
 
-	c := cpu.New(context.Background(), m)
+	c := cpu.New(m)
 
 	s := stack.NewStack(c, m)
 
@@ -47,6 +53,8 @@ func New(options ...GameBoyOption) (*GameBoy, error) {
 	i := interrupt.NewManager(c, m, s)
 
 	g := ppu.New(m, screen.New())
+
+	ctx, cancel := context.WithCancel(ctx)
 
 	gameBoy := GameBoy{
 		cpu:   c,
@@ -57,6 +65,11 @@ func New(options ...GameBoyOption) (*GameBoy, error) {
 		IM:    i,
 		ppu:   g,
 		mu:    &sync.Mutex{},
+
+		ticker: quarz.Ticker,
+		ctx:    ctx,
+		wg:     &sync.WaitGroup{},
+		cancel: cancel,
 	}
 
 	for _, o := range options {
@@ -73,7 +86,7 @@ func (g *GameBoy) CPU() types.CPU {
 }
 
 func (g *GameBoy) MMU() types.MMU {
-	return g.MMU()
+	return g.mmu
 }
 
 func (g *GameBoy) Stack() types.Stack {
@@ -93,49 +106,60 @@ func (g *GameBoy) Unlock() {
 }
 
 func (g *GameBoy) Start() {
-	if g.MMU().Cartridge == nil {
+	if g.MMU().Cartridge() == nil {
 		slog.Warn("missing cartridge, not starting")
 		return
 	}
 
-	g.cpu.Start()
+	g.wg.Add(1)
+
+	ticksLeft := 0
+
+	interruptTicks := 0
+	instructionTicks := 0
+
+	go func() {
+		defer g.wg.Done()
+
+		for {
+			select {
+			case <-g.ctx.Done():
+				return
+			default:
+				interruptTicks = 0
+				instructionTicks = 0
+
+				if ticksLeft > 0 {
+					ticksLeft--
+					goto end
+				}
+
+				interruptTicks = g.ServiceInterrupts()
+
+				if interruptTicks > 0 {
+					ticksLeft += interruptTicks
+					goto end
+				}
+
+				if g.cpu.Halt() {
+					goto end
+				}
+
+				instructionTicks = int(cpu.H.ExecuteNextOpcode(g))
+
+				ticksLeft += instructionTicks
+
+			end:
+				g.Timer.Tick(1)
+				g.ppu.Update(1)
+
+				break
+			}
+		}
+	}()
 }
 
 func (g *GameBoy) Stop() {
-	g.cpu.Stop()
-}
-
-// todo: using ticks now, break this down
-func (g *GameBoy) Update(ctx context.Context) {
-	g.mu.Lock()
-	defer g.mu.Unlock()
-
-	if g.MMU().Cartridge == nil {
-		slog.Warn("missing cartridge, update skipped")
-		return
-	}
-
-	executedTicks := 0
-
-	for executedTicks < quarz.CPUTicksPerFrame {
-		select {
-		case <-ctx.Done():
-			return
-		default:
-		}
-
-		ticks := g.ServiceInterrupts()
-
-		if g.cpu.Halt() {
-			// this is not accurate
-			ticks += 1
-		} else {
-			//ticks += int(cpu.h.executeNextOpcode(g))
-		}
-
-		g.Timer.Tick(ticks)
-		g.ppu.Update(ticks)
-
-		executedTicks += ticks
-	}
+	g.cancel()
+	g.wg.Wait()
 }

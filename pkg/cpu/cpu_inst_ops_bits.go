@@ -6,7 +6,7 @@ import (
 
 func addBitInstructions() {
 	// RLCA
-	h.add(0x07, func(g types.GameBoy) (ticks byte) {
+	H.add(0x07, func(g types.GameBoy) (ticks byte) {
 		a := g.CPU().AF().Hi()
 		result := (a << 1) | (a >> 7)
 
@@ -21,7 +21,7 @@ func addBitInstructions() {
 	})
 
 	// RLA
-	h.add(0x17, func(g types.GameBoy) (ticks byte) {
+	H.add(0x17, func(g types.GameBoy) (ticks byte) {
 		a := g.CPU().AF().Hi()
 
 		c := byte(0)
@@ -43,7 +43,7 @@ func addBitInstructions() {
 	})
 
 	// RRCA
-	h.add(0x0F, func(g types.GameBoy) (ticks byte) {
+	H.add(0x0F, func(g types.GameBoy) (ticks byte) {
 		a := g.CPU().AF().Hi()
 
 		a = (a >> 1) | (a&1)<<7
@@ -59,7 +59,7 @@ func addBitInstructions() {
 	})
 
 	// RRA
-	h.add(0x1F, func(g types.GameBoy) (ticks byte) {
+	H.add(0x1F, func(g types.GameBoy) (ticks byte) {
 		a := g.CPU().AF().Hi()
 
 		c := byte(0)
@@ -81,12 +81,12 @@ func addBitInstructions() {
 	})
 
 	// PREFIX
-	h.add(0xCB, func(g types.GameBoy) (ticks byte) {
-		return p.executeNextOpcode(g) + 4
+	H.add(0xCB, func(g types.GameBoy) (ticks byte) {
+		return p.ExecuteNextOpcode(g) + 4
 	})
 
 	// DAA
-	h.add(0x27, func(g types.GameBoy) (ticks byte) {
+	H.add(0x27, func(g types.GameBoy) (ticks byte) {
 		a := g.CPU().AF().Hi()
 
 		if !g.CPU().Flag(types.FlagN) {
@@ -116,7 +116,7 @@ func addBitInstructions() {
 	})
 
 	// CCF
-	h.add(0x3F, func(g types.GameBoy) (ticks byte) {
+	H.add(0x3F, func(g types.GameBoy) (ticks byte) {
 		g.CPU().SetFlag(types.FlagC, !g.CPU().Flag(types.FlagC))
 
 		g.CPU().SetFlag(types.FlagN, false)
@@ -126,7 +126,7 @@ func addBitInstructions() {
 	})
 
 	// CPL
-	h.add(0x2F, func(g types.GameBoy) (ticks byte) {
+	H.add(0x2F, func(g types.GameBoy) (ticks byte) {
 		g.CPU().AF().SetHi(^g.CPU().AF().Hi())
 
 		g.CPU().SetFlag(types.FlagN, true)
@@ -136,7 +136,7 @@ func addBitInstructions() {
 	})
 
 	// SCF
-	h.add(0x37, func(g types.GameBoy) (ticks byte) {
+	H.add(0x37, func(g types.GameBoy) (ticks byte) {
 		g.CPU().SetFlag(types.FlagC, true)
 		g.CPU().SetFlag(types.FlagN, false)
 		g.CPU().SetFlag(types.FlagH, false)

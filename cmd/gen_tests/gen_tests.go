@@ -201,15 +201,11 @@ var romTestCollections = []struct {
 	{"Misc", "../../testdata/roms/misc/", "", "gb_roms_misc_test.go"},
 }
 
-var romBenchCollections = []struct {
+var romBenchCollections []struct {
 	Name                   string
 	RomsRoot               string
 	SerialCallbackFuncName string
 	OutFile                string
-}{
-	{"Acid2", "../../testdata/roms/misc/dmg-acid2", "", "gb_roms_acid2_bench_test.go"},
-	{"BlarggCpuInstrs", "../../testdata/roms/blargg/cpu_instrs", "blarggSerialCallback", "gb_roms_blargg_bench_test.go"},
-	{"MooneyeMBC1", "../../testdata/roms/mooneye/emulator-only/mbc1", "mooneyeSerialCallback", "gb_roms_mooneye_bench_test.go"},
 }
 
 func main() {

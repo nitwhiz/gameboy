@@ -54,7 +54,7 @@ func TestInitHandlers(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if x := h.handler(byte(codeInt)); x == nil {
+		if x := H.handler(byte(codeInt)); x == nil {
 			var operands []string
 
 			for _, operand := range op.Operands {

@@ -1,12 +1,8 @@
 package cpu
 
 import (
-	"context"
 	"github.com/nitwhiz/gameboy/pkg/bits"
-	"github.com/nitwhiz/gameboy/pkg/quarz"
 	"github.com/nitwhiz/gameboy/pkg/types"
-	"sync"
-	"time"
 )
 
 type CPU struct {
@@ -19,20 +15,11 @@ type CPU struct {
 
 	mmu types.MMU
 
-	ime  bool
-	halt bool
-
-	ticker *time.Ticker
-	ctx    context.Context
-	cancel context.CancelFunc
-	wg     *sync.WaitGroup
-
-	shouldFetch bool
-	isFetching  bool
+	ime     bool
+	halting bool
 }
 
-func New(ctx context.Context, mmu types.MMU) *CPU {
-	ctx, cancel := context.WithCancel(ctx)
+func New(mmu types.MMU) *CPU {
 
 	c := CPU{
 		af: NewAFRegister(0x01B0),
@@ -44,48 +31,11 @@ func New(ctx context.Context, mmu types.MMU) *CPU {
 
 		mmu: mmu,
 
-		ime:  false,
-		halt: false,
-
-		ticker: quarz.Ticker,
-		ctx:    ctx,
-		wg:     &sync.WaitGroup{},
-		cancel: cancel,
-
-		shouldFetch: true,
+		ime:     false,
+		halting: false,
 	}
 
 	return &c
-}
-
-func (c *CPU) Start() {
-	c.wg.Add(1)
-
-	go func() {
-		defer c.wg.Done()
-
-		for {
-			select {
-			case <-c.ctx.Done():
-				return
-			case <-c.ticker.C:
-				if c.halt || !c.shouldFetch {
-					break
-				}
-
-				c.isFetching = true
-
-				// todo: implement opcode fetching
-
-				break
-			}
-		}
-	}()
-}
-
-func (c *CPU) Stop() {
-	c.cancel()
-	c.wg.Wait()
 }
 
 func (c *CPU) AF() types.Register {
@@ -121,11 +71,11 @@ func (c *CPU) SetIME(ime bool) {
 }
 
 func (c *CPU) Halt() bool {
-	return c.halt
+	return c.halting
 }
 
 func (c *CPU) SetHalt(halt bool) {
-	c.halt = halt
+	c.halting = halt
 }
 
 func (c *CPU) SetFlag(flag types.Flag, v bool) {

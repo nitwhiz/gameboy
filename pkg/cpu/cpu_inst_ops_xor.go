@@ -4,47 +4,47 @@ import "github.com/nitwhiz/gameboy/pkg/types"
 
 func addXORHandlers() {
 	// XOR A, B
-	h.add(0xA8, func(g types.GameBoy) (ticks byte) {
+	H.add(0xA8, func(g types.GameBoy) (ticks byte) {
 		return instXor(g.CPU(), g.CPU().BC().Hi())
 	})
 
 	// XOR A, C
-	h.add(0xA9, func(g types.GameBoy) (ticks byte) {
+	H.add(0xA9, func(g types.GameBoy) (ticks byte) {
 		return instXor(g.CPU(), g.CPU().BC().Lo())
 	})
 
 	// XOR A, D
-	h.add(0xAA, func(g types.GameBoy) (ticks byte) {
+	H.add(0xAA, func(g types.GameBoy) (ticks byte) {
 		return instXor(g.CPU(), g.CPU().DE().Hi())
 	})
 
 	// XOR A, E
-	h.add(0xAB, func(g types.GameBoy) (ticks byte) {
+	H.add(0xAB, func(g types.GameBoy) (ticks byte) {
 		return instXor(g.CPU(), g.CPU().DE().Lo())
 	})
 
 	// XOR A, H
-	h.add(0xAC, func(g types.GameBoy) (ticks byte) {
+	H.add(0xAC, func(g types.GameBoy) (ticks byte) {
 		return instXor(g.CPU(), g.CPU().HL().Hi())
 	})
 
 	// XOR A, L
-	h.add(0xAD, func(g types.GameBoy) (ticks byte) {
+	H.add(0xAD, func(g types.GameBoy) (ticks byte) {
 		return instXor(g.CPU(), g.CPU().HL().Lo())
 	})
 
 	// XOR A, [HL]
-	h.add(0xAE, func(g types.GameBoy) (ticks byte) {
+	H.add(0xAE, func(g types.GameBoy) (ticks byte) {
 		return instXor(g.CPU(), g.MMU().Read(g.CPU().HL().Val())) + 4
 	})
 
 	// XOR A, A
-	h.add(0xAF, func(g types.GameBoy) (ticks byte) {
+	H.add(0xAF, func(g types.GameBoy) (ticks byte) {
 		return instXor(g.CPU(), g.CPU().AF().Hi())
 	})
 
 	// XOR A, n8
-	h.add(0xEE, func(g types.GameBoy) (ticks byte) {
+	H.add(0xEE, func(g types.GameBoy) (ticks byte) {
 		return instXor(g.CPU(), g.CPU().Fetch8()) + 4
 	})
 }

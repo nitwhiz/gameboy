@@ -11,8 +11,8 @@ type handler func(g types.GameBoy) (ticks byte)
 
 type table [0x100]handler
 
-// h - instruction handler table
-var h = &table{}
+// H - instruction handler table
+var H = &table{}
 
 // p - prefixed instruction handler table
 var p = &table{}
@@ -33,8 +33,7 @@ func (i *table) handler(code byte) handler {
 	return i[code]
 }
 
-// todo: this will be handled in cpu
-func (i *table) executeNextOpcode(g types.GameBoy) (ticks byte) {
+func (i *table) ExecuteNextOpcode(g types.GameBoy) (ticks byte) {
 	code := g.CPU().Fetch8()
 	hand := i.handler(code)
 
