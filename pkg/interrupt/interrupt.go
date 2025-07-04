@@ -65,5 +65,5 @@ func (m *Manager) Service() (ticks int) {
 		}
 	}
 
-	return 0
+	return
 }

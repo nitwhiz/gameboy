@@ -17,7 +17,7 @@ func addControlHandlers() {
 
 		g.CPU().Fetch8()
 
-		g.MMU().Memory().ResetTimerCounter()
+		g.MMU().Write(addr.DIV, 0x00)
 
 		return 4
 	})

@@ -1,4 +1,6 @@
-package quarz
+//go:build excluded
+
+package timer
 
 import (
 	"github.com/nitwhiz/gameboy/pkg/addr"
@@ -6,15 +8,15 @@ import (
 	"github.com/nitwhiz/gameboy/pkg/types"
 )
 
-type Timer struct {
+type Timer2 struct {
 	LastTACEnabled        bool
 	TriggerOnFallingEdge  bool
 	PostTIMAOverflowTicks int
 	mmu                   types.MMU
 }
 
-func NewTimer(mmu types.MMU) *Timer {
-	return &Timer{
+func NewTimer2(mmu types.MMU) *Timer2 {
+	return &Timer2{
 		LastTACEnabled:        false,
 		TriggerOnFallingEdge:  false,
 		PostTIMAOverflowTicks: -1,
@@ -22,14 +24,14 @@ func NewTimer(mmu types.MMU) *Timer {
 	}
 }
 
-func (t *Timer) Tick(ticks int) {
+func (t *Timer2) Tick(ticks int) {
 	tac := t.mmu.Read(addr.TAC)
 	tima := t.mmu.Read(addr.TIMA)
 	tma := t.mmu.Read(addr.TMA)
 
 	nextTima := int(tima)
 
-	if t.mmu.Memory().TimerCounter() == 0 && t.TriggerOnFallingEdge {
+	if t.mmu.Timer().GetValue() == 0 && t.TriggerOnFallingEdge {
 		t.TriggerOnFallingEdge = false
 		nextTima++
 	}
@@ -38,12 +40,12 @@ func (t *Timer) Tick(ticks int) {
 	clockSelect := bits.GetTACClockSelect(tac)
 	tacMask := GetTACMask(clockSelect)
 
-	if !tacEnabled && t.LastTACEnabled && t.mmu.Memory().TimerCounter()&tacMask != 0 {
+	if !tacEnabled && t.LastTACEnabled && t.mmu.Timer().GetValue()&tacMask != 0 {
 		nextTima++
 	}
 
 	for range ticks {
-		t.mmu.Memory().IncTimerCounter()
+		t.mmu.Timer().Inc()
 
 		if t.PostTIMAOverflowTicks > -1 {
 			t.PostTIMAOverflowTicks++
@@ -60,7 +62,7 @@ func (t *Timer) Tick(ticks int) {
 		}
 
 		if tacEnabled {
-			if t.mmu.Memory().TimerCounter()&tacMask != 0 {
+			if t.mmu.Timer().GetValue()&tacMask != 0 {
 				t.TriggerOnFallingEdge = true
 			} else if t.TriggerOnFallingEdge {
 				t.TriggerOnFallingEdge = false
@@ -76,5 +78,5 @@ func (t *Timer) Tick(ticks int) {
 		nextTima = nextTima - 0x100
 	}
 
-	t.mmu.Memory().WriteIO(t.mmu.Memory().AddrIO(addr.TIMA), byte(nextTima))
+	t.mmu.Write(addr.TIMA, byte(nextTima))
 }

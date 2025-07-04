@@ -104,10 +104,11 @@ func (p *PPU) Update(ticks int) {
 	if p.ticks >= ScanlineDuration {
 		p.ticks -= ScanlineDuration
 
-		nextLY := p.mmu.IncLY()
+		nextLY := p.mmu.Read(addr.LY) + 1
+		p.mmu.Write(addr.LY, nextLY)
 
 		if nextLY > ScanlineCount {
-			p.mmu.ResetLY()
+			p.mmu.Write(addr.LY, 0)
 		}
 
 		if nextLY <= VisibleScanlineCount {

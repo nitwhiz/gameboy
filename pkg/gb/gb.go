@@ -8,20 +8,19 @@ import (
 	"github.com/nitwhiz/gameboy/pkg/memory"
 	"github.com/nitwhiz/gameboy/pkg/mmu"
 	"github.com/nitwhiz/gameboy/pkg/ppu"
-	"github.com/nitwhiz/gameboy/pkg/quarz"
 	"github.com/nitwhiz/gameboy/pkg/screen"
 	"github.com/nitwhiz/gameboy/pkg/stack"
+	"github.com/nitwhiz/gameboy/pkg/timer"
 	"github.com/nitwhiz/gameboy/pkg/types"
 	"log/slog"
 	"sync"
-	"time"
 )
 
 type GameBoy struct {
 	cpu types.CPU
 	mmu types.MMU
 
-	Timer *quarz.Timer
+	Timer *timer.Timer
 	Input types.InputState
 
 	IM    *interrupt.Manager
@@ -31,7 +30,6 @@ type GameBoy struct {
 
 	HaltBug int
 
-	ticker *time.Ticker
 	ctx    context.Context
 	cancel context.CancelFunc
 	wg     *sync.WaitGroup
@@ -42,13 +40,13 @@ type GameBoy struct {
 func New(ctx context.Context, options ...GameBoyOption) (*GameBoy, error) {
 	in := input.NewState()
 
-	m := mmu.New(in, memory.New())
+	t := timer.New()
+
+	m := mmu.New(in, memory.NewContainer(), t)
 
 	c := cpu.New(m)
 
 	s := stack.NewStack(c, m)
-
-	t := quarz.NewTimer(m)
 
 	i := interrupt.NewManager(c, m, s)
 
@@ -66,7 +64,6 @@ func New(ctx context.Context, options ...GameBoyOption) (*GameBoy, error) {
 		ppu:   g,
 		mu:    &sync.Mutex{},
 
-		ticker: quarz.Ticker,
 		ctx:    ctx,
 		wg:     &sync.WaitGroup{},
 		cancel: cancel,
@@ -106,7 +103,7 @@ func (g *GameBoy) Unlock() {
 }
 
 func (g *GameBoy) Start() {
-	if g.MMU().Cartridge() == nil {
+	if !g.MMU().HasCartridge() {
 		slog.Warn("missing cartridge, not starting")
 		return
 	}
