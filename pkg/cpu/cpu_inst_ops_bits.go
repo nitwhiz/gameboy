@@ -6,7 +6,7 @@ import (
 
 func addBitInstructions() {
 	// RLCA
-	H.add(0x07, func(g types.GameBoy) (ticks byte) {
+	H.add(0x07, func(g types.GameBoy) {
 		a := g.CPU().AF().Hi()
 		result := (a << 1) | (a >> 7)
 
@@ -16,12 +16,10 @@ func addBitInstructions() {
 		g.CPU().SetFlag(types.FlagN, false)
 		g.CPU().SetFlag(types.FlagH, false)
 		g.CPU().SetFlag(types.FlagC, a > 0x7F)
-
-		return 4
 	})
 
 	// RLA
-	H.add(0x17, func(g types.GameBoy) (ticks byte) {
+	H.add(0x17, func(g types.GameBoy) {
 		a := g.CPU().AF().Hi()
 
 		c := byte(0)
@@ -38,12 +36,10 @@ func addBitInstructions() {
 		g.CPU().SetFlag(types.FlagN, false)
 		g.CPU().SetFlag(types.FlagH, false)
 		g.CPU().SetFlag(types.FlagC, a > 0x7F)
-
-		return 4
 	})
 
 	// RRCA
-	H.add(0x0F, func(g types.GameBoy) (ticks byte) {
+	H.add(0x0F, func(g types.GameBoy) {
 		a := g.CPU().AF().Hi()
 
 		a = (a >> 1) | (a&1)<<7
@@ -54,12 +50,10 @@ func addBitInstructions() {
 		g.CPU().SetFlag(types.FlagN, false)
 		g.CPU().SetFlag(types.FlagH, false)
 		g.CPU().SetFlag(types.FlagC, a > 0x7F)
-
-		return 4
 	})
 
 	// RRA
-	H.add(0x1F, func(g types.GameBoy) (ticks byte) {
+	H.add(0x1F, func(g types.GameBoy) {
 		a := g.CPU().AF().Hi()
 
 		c := byte(0)
@@ -81,12 +75,12 @@ func addBitInstructions() {
 	})
 
 	// PREFIX
-	H.add(0xCB, func(g types.GameBoy) (ticks byte) {
-		return p.ExecuteNextOpcode(g) + 4
+	H.add(0xCB, func(g types.GameBoy) {
+		p.ExecuteNextOpcode(g)
 	})
 
 	// DAA
-	H.add(0x27, func(g types.GameBoy) (ticks byte) {
+	H.add(0x27, func(g types.GameBoy) {
 		a := g.CPU().AF().Hi()
 
 		if !g.CPU().Flag(types.FlagN) {
@@ -111,36 +105,28 @@ func addBitInstructions() {
 
 		g.CPU().SetFlag(types.FlagZ, a == 0)
 		g.CPU().AF().SetHi(a)
-
-		return 4
 	})
 
 	// CCF
-	H.add(0x3F, func(g types.GameBoy) (ticks byte) {
+	H.add(0x3F, func(g types.GameBoy) {
 		g.CPU().SetFlag(types.FlagC, !g.CPU().Flag(types.FlagC))
 
 		g.CPU().SetFlag(types.FlagN, false)
 		g.CPU().SetFlag(types.FlagH, false)
-
-		return 4
 	})
 
 	// CPL
-	H.add(0x2F, func(g types.GameBoy) (ticks byte) {
+	H.add(0x2F, func(g types.GameBoy) {
 		g.CPU().AF().SetHi(^g.CPU().AF().Hi())
 
 		g.CPU().SetFlag(types.FlagN, true)
 		g.CPU().SetFlag(types.FlagH, true)
-
-		return 4
 	})
 
 	// SCF
-	H.add(0x37, func(g types.GameBoy) (ticks byte) {
+	H.add(0x37, func(g types.GameBoy) {
 		g.CPU().SetFlag(types.FlagC, true)
 		g.CPU().SetFlag(types.FlagN, false)
 		g.CPU().SetFlag(types.FlagH, false)
-
-		return 4
 	})
 }

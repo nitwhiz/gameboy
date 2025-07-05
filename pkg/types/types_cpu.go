@@ -22,12 +22,12 @@ type CPU interface {
 	PC() Register
 	IME() bool
 	SetIME(ime bool)
+	IMEToggle() bool
+	SetIMEToggle(imeToggle bool)
 	Halt() bool
 	SetHalt(halt bool)
 	Flag(f Flag) bool
 	SetFlag(f Flag, v bool)
-	Fetch8() byte
-	Fetch16() uint16
 }
 
 type Register interface {

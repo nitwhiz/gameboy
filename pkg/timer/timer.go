@@ -23,7 +23,8 @@ func GetTACMask(tacClockSelect byte) uint16 {
 }
 
 type Timer struct {
-	value uint16
+	value       uint16
+	tCycleCount int
 }
 
 func (t *Timer) GetValue() uint16 {
@@ -38,8 +39,13 @@ func (t *Timer) Inc() {
 	t.value += 1
 }
 
-func (t *Timer) Tick(ticks int) {
-	t.value += uint16(ticks)
+func (t *Timer) Tick(n int) {
+	t.tCycleCount += n
+
+	for t.tCycleCount >= 4 {
+		t.Inc()
+		t.tCycleCount -= 4
+	}
 }
 
 func New() *Timer {

@@ -59,7 +59,7 @@ func (p *PPU) Screen() types.Screen {
 	return p.screen
 }
 
-func (p *PPU) Update(ticks int) {
+func (p *PPU) Ticks(ticks int) {
 	stat := p.mmu.Read(addr.STAT)
 	lcdc := p.mmu.Read(addr.LCDC)
 

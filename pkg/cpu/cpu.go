@@ -15,12 +15,12 @@ type CPU struct {
 
 	mmu types.MMU
 
-	ime     bool
-	halting bool
+	ime       bool
+	imeToggle bool
+	halting   bool
 }
 
 func New(mmu types.MMU) *CPU {
-
 	c := CPU{
 		af: NewAFRegister(0x01B0),
 		bc: NewRegister(0x0013),
@@ -31,8 +31,9 @@ func New(mmu types.MMU) *CPU {
 
 		mmu: mmu,
 
-		ime:     false,
-		halting: false,
+		ime:       false,
+		imeToggle: false,
+		halting:   false,
 	}
 
 	return &c
@@ -66,8 +67,16 @@ func (c *CPU) IME() bool {
 	return c.ime
 }
 
+func (c *CPU) IMEToggle() bool {
+	return c.imeToggle
+}
+
 func (c *CPU) SetIME(ime bool) {
 	c.ime = ime
+}
+
+func (c *CPU) SetIMEToggle(imeToggle bool) {
+	c.imeToggle = imeToggle
 }
 
 func (c *CPU) Halt() bool {
@@ -88,22 +97,4 @@ func (c *CPU) SetFlag(flag types.Flag, v bool) {
 
 func (c *CPU) Flag(flag types.Flag) bool {
 	return bits.Test(c.AF().Lo(), byte(flag))
-}
-
-func (c *CPU) Fetch8() byte {
-	pc := c.pc.Val()
-	c.pc.Set(pc + 1)
-
-	return c.mmu.Read(pc)
-}
-
-func (c *CPU) Fetch16() uint16 {
-	pc := c.pc.Val()
-
-	v1 := c.mmu.Read(pc)
-	v2 := c.mmu.Read(pc + 1)
-
-	c.pc.Set(pc + 2)
-
-	return uint16(v1) | (uint16(v2) << 8)
 }

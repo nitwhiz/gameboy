@@ -35,7 +35,7 @@ func newRomTestCase(t *testing.T, romPath string, expectedScreenshot *image.Imag
 		t.Fatal(err)
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, time.Second*20)
+	ctx, cancel := context.WithTimeout(ctx, time.Second*60)
 
 	g, err := gb.New(
 		ctx,

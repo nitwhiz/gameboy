@@ -7,26 +7,24 @@ import (
 
 func addControlHandlers() {
 	// NOP
-	H.add(0x00, func(g types.GameBoy) (ticks byte) {
-		return 4
+	H.add(0x00, func(g types.GameBoy) {
 	})
 
 	// STOP
-	H.add(0x10, func(g types.GameBoy) (ticks byte) {
+	H.add(0x10, func(g types.GameBoy) {
 		g.CPU().SetHalt(true)
 
-		g.CPU().Fetch8()
+		// todo: is that correct?
+		g.Fetch8()
 
-		g.MMU().Write(addr.DIV, 0x00)
-
-		return 4
+		g.Write(addr.DIV, 0x00)
 	})
 
 	// HALT
-	H.add(0x76, func(g types.GameBoy) (ticks byte) {
-		haltBug := !g.CPU().IME() && ((g.MMU().Read(addr.IE) & g.MMU().Read(addr.IF) & 0x1F) != 0)
+	H.add(0x76, func(g types.GameBoy) {
+		haltBug := !g.CPU().IME() && ((g.Read8(addr.IE) & g.Read8(addr.IF) & 0x1F) != 0)
 
-		// todo
+		// todo: implement halt bug
 
 		if haltBug {
 			//g.HaltBug = 2
@@ -37,19 +35,19 @@ func addControlHandlers() {
 		}
 
 		g.CPU().SetHalt(true)
-
-		return 4
 	})
 
 	// DI
-	H.add(0xF3, func(g types.GameBoy) (ticks byte) {
+	H.add(0xF3, func(g types.GameBoy) {
 		g.CPU().SetIME(false)
-		return 4
 	})
 
 	// EI
-	H.add(0xFB, func(g types.GameBoy) (ticks byte) {
-		g.CPU().SetIME(true)
-		return 4
+	H.add(0xFB, func(g types.GameBoy) {
+		c := g.CPU()
+
+		if !c.IME() && !c.IMEToggle() {
+			c.SetIMEToggle(true)
+		}
 	})
 }

@@ -3,6 +3,6 @@ package types
 type PPUMode byte
 
 type PPU interface {
-	Update(ticks int)
+	Ticks(ticks int)
 	Screen() Screen
 }

@@ -29,11 +29,10 @@ type Manager struct {
 	stack types.Stack
 }
 
-func NewManager(cpu types.CPU, mmu types.MMU, stack types.Stack) *Manager {
+func NewManager(cpu types.CPU, mmu types.MMU) *Manager {
 	return &Manager{
-		cpu:   cpu,
-		mmu:   mmu,
-		stack: stack,
+		cpu: cpu,
+		mmu: mmu,
 	}
 }
 
