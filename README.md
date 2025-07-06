@@ -2,7 +2,7 @@
 
 A(nother) game boy emulator written in Go.
 
-This is meant to be used as a library, not a batteries-included emulator to play games. It's not focused on accuracy, but on ease to emulate frame-by-frame.
+This is meant to be used as a library, not a batteries-included emulator to play games. It's not focused on ease to emulate frame-by-frame.
 
 # Features
 
@@ -15,6 +15,7 @@ This is meant to be used as a library, not a batteries-included emulator to play
 
 - Heavily inspired by [goboy](https://github.com/Humpheh/goboy)
 - Rough implementation ideas from [codeslinger.co.uk](http://www.codeslinger.co.uk/pages/projects/gameboy/hardware.html)
+- Cycle-accuracy inspired by and sometimes blatantly ported from [SameBoy](https://github.com/LIJI32/SameBoy)
 - Impossible without
   - [Pan Docs](https://gbdev.io/pandocs/)
   - [Opcode Reference 1](https://gbdev.io/gb-opcodes//optables/)
