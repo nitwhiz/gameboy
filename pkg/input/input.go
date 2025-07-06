@@ -20,6 +20,8 @@ const (
 type State struct {
 	abss byte
 	dpad byte
+
+	accessed bool
 }
 
 func NewState() *State {
@@ -51,4 +53,12 @@ func (s *State) Value(sel types.SelectType) byte {
 	}
 
 	return s.dpad
+}
+
+func (s *State) Accessed() bool {
+	return s.accessed
+}
+
+func (s *State) SetAccessed(accessed bool) {
+	s.accessed = accessed
 }

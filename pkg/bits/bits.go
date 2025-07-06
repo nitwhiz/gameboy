@@ -1,26 +1,26 @@
 package bits
 
-// Set a bit in v.
-func Set(v byte, b byte) byte {
-	return v | (1 << b)
+// Set the nth bit in v.
+func Set(v byte, n byte) byte {
+	return v | (1 << n)
 }
 
-// Val - value of the bit at `b`
+// Val - value of the nth bit in v.
 // returns 0 or 1
-func Val(v byte, b byte) byte {
-	if Test(v, b) {
+func Val(v byte, n byte) byte {
+	if Test(v, n) {
 		return 1
 	}
 
 	return 0
 }
 
-// Reset a bit in v.
-func Reset(v byte, b byte) byte {
-	return v & ^(1 << b)
+// Reset the nth bit in v.
+func Reset(v byte, n byte) byte {
+	return v & ^(1 << n)
 }
 
 // Test if a bit is 1 in v.
-func Test(v byte, b byte) bool {
-	return (v>>b)&1 == 1
+func Test(v byte, n byte) bool {
+	return (v>>n)&1 == 1
 }

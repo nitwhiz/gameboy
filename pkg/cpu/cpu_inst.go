@@ -72,8 +72,7 @@ func (i *table) ExecuteNextOpcode(g types.GameBoy) {
 	}
 
 	if op != 0xCB {
-		// todo: add game boy doctor debug flag?
-		// WriteGameBoyDoctorLog(g)
+		WriteGameBoyDoctorLog(g)
 	}
 }
 

@@ -5,4 +5,5 @@ const (
 	CartridgeType    = uint16(0x0147)
 	CartridgeRomSize = uint16(0x0148)
 	CartridgeRamSize = uint16(0x0149)
+	CartridgeTitle   = uint16(0x0134)
 )

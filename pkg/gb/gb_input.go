@@ -6,10 +6,10 @@ import (
 )
 
 func (g *GameBoy) PressButton(button types.ButtonType) {
-	g.Input.Press(button)
+	g.input.Press(button)
 }
 
 func (g *GameBoy) ReleaseButton(button types.ButtonType) {
-	g.Input.Release(button)
-	g.mmu.RequestInterrupt(addr.InterruptJoypad)
+	g.input.Release(button)
+	g.interruptController.Request(addr.InterruptJoypad)
 }

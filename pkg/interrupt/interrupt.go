@@ -23,46 +23,44 @@ func GetISR(i types.InterruptType) uint16 {
 	}
 }
 
-type Manager struct {
-	cpu   types.CPU
-	mmu   types.MMU
-	stack types.Stack
+// todo: use this to request and check for interrupts
+
+type Controller struct {
+	flag   byte
+	enable byte
 }
 
-func NewManager(cpu types.CPU, mmu types.MMU) *Manager {
-	return &Manager{
-		cpu: cpu,
-		mmu: mmu,
+func NewController() *Controller {
+	return &Controller{
+		flag:   0,
+		enable: 0,
 	}
 }
 
-func (m *Manager) Service() (ticks int) {
-	requested := m.mmu.Read(addr.IF)
-	enabled := m.mmu.Read(addr.IE)
+func (c *Controller) Request(i types.InterruptType) {
+	c.flag = bits.Set(c.flag, byte(i))
+}
 
-	if requested&enabled == 0 {
-		return
-	} else {
-		m.cpu.SetHalt(false)
-	}
+func (c *Controller) IsRequested(i types.InterruptType) bool {
+	return bits.Val(c.flag, byte(i)) != 0
+}
 
-	if m.cpu.IME() {
-		m.cpu.SetIME(false)
+func (c *Controller) Flush(i types.InterruptType) {
+	c.flag = bits.Reset(c.flag, byte(i))
+}
 
-		for i := 0; i < 5; i++ {
-			t := types.InterruptType(i)
+func (c *Controller) IF() byte {
+	return c.flag
+}
 
-			if bits.Test(requested, byte(t)) && bits.Test(enabled, byte(t)) {
-				requested = bits.Reset(requested, byte(t))
-				m.mmu.Write(addr.IF, requested)
+func (c *Controller) IE() byte {
+	return c.enable
+}
 
-				m.stack.Push(m.cpu.PC().Val())
-				m.cpu.PC().Set(GetISR(t))
+func (c *Controller) SetIF(flag byte) {
+	c.flag = flag
+}
 
-				return 20
-			}
-		}
-	}
-
-	return
+func (c *Controller) SetIE(enable byte) {
+	c.enable = enable
 }

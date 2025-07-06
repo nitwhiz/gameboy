@@ -8,21 +8,23 @@ import (
 )
 
 type MMU struct {
-	cartridge types.Cartridge
-	input     types.InputState
-	memory    *memory.Container
-	timer     types.Timer
+	cartridge           types.Cartridge
+	input               types.InputState
+	memory              *memory.Container
+	timer               types.Timer
+	interruptController types.InterruptController
 
 	timerLock      bool
 	serialReceiver func(byte)
 }
 
-func New(in types.InputState, memory *memory.Container, timer types.Timer) *MMU {
+func New(in types.InputState, memory *memory.Container, timer types.Timer, interruptController types.InterruptController) *MMU {
 	return &MMU{
-		cartridge: nil,
-		input:     in,
-		memory:    memory,
-		timer:     timer,
+		cartridge:           nil,
+		input:               in,
+		memory:              memory,
+		timer:               timer,
+		interruptController: interruptController,
 
 		timerLock:      false,
 		serialReceiver: nil,
@@ -56,7 +58,23 @@ func addrIO(address uint16) uint16 {
 func (m *MMU) mappedWrite(address uint16, v byte) {
 	switch {
 	case address == addr.DIV:
-		m.timer.SetValue(0)
+		m.timer.SetDivCounter(0)
+		m.timer.SetDivState(0)
+		m.timer.SetDivCycles(0)
+	case address == addr.TIMA:
+		if m.timer.TIMAState() != types.TimaReloaded {
+			m.timer.SetTIMA(v)
+		}
+	case address == addr.TMA:
+		m.timer.SetTMA(v)
+
+		if m.timer.TIMAState() != types.TimaRunning {
+			m.timer.SetTIMA(v)
+		}
+	case address == addr.TAC:
+		m.timer.SetTAC(v)
+	case address == addr.IE:
+		m.interruptController.SetIE(v)
 	case inRange(address, addr.MemAudioBegin, addr.MemAudioEnd):
 		// not implemented
 		return
@@ -82,9 +100,15 @@ func (m *MMU) mappedWrite(address uint16, v byte) {
 
 func (m *MMU) mappedRead(address uint16) byte {
 	switch {
+	case address == addr.IF:
+		return m.interruptController.IF()
+	case address == addr.IE:
+		return m.interruptController.IE()
 	case address == addr.DIV:
-		return byte((m.timer.GetValue() & 0xFF00) >> 8)
+		return m.timer.GetDiv()
 	case address == addr.JOYP:
+		m.input.SetAccessed(true)
+
 		v := m.memory.IO.Read(addrIO(address)) & 0xF0
 
 		if bits.IsJOYPSelectButtons(v) {
@@ -93,7 +117,17 @@ func (m *MMU) mappedRead(address uint16) byte {
 			return v | m.input.Value(types.InputSelectDPad)
 		}
 
-		return v | 0x0F | memory.GetUnusedBits(addr.JOYP)
+		return v | 0x0F | memory.GetUnusedIOBits(addr.JOYP)
+	case address == addr.TIMA:
+		if m.timer.TIMAState() == types.TimaReloading {
+			return 0
+		}
+
+		return m.timer.TIMA()
+	case address == addr.TMA:
+		return m.timer.TMA()
+	case address == addr.TAC:
+		return m.timer.TAC()
 	case inRange(address, addr.MemROMBegin, addr.MemROMEnd):
 		return m.cartridge.BankingController().Read(address)
 	case inRange(address, addr.MemVRAMBegin, addr.MemVRAMEnd):
@@ -121,8 +155,8 @@ func (m *MMU) Write(address uint16, v byte) {
 	m.mappedWrite(address, v)
 }
 
-func (m *MMU) HasCartridge() bool {
-	return m.cartridge != nil
+func (m *MMU) Cartridge() types.Cartridge {
+	return m.cartridge
 }
 
 func (m *MMU) SetCartridge(cartridge types.Cartridge) {
@@ -131,10 +165,6 @@ func (m *MMU) SetCartridge(cartridge types.Cartridge) {
 
 func (m *MMU) SetSerialReceiver(receiver func(byte)) {
 	m.serialReceiver = receiver
-}
-
-func (m *MMU) RequestInterrupt(typ types.InterruptType) {
-	m.Write(addr.IF, bits.Set(m.Read(addr.IF), byte(typ)))
 }
 
 func (m *MMU) CheckLYCLY() {
@@ -146,7 +176,7 @@ func (m *MMU) CheckLYCLY() {
 		stat = bits.Set(stat, addr.STAT_COINCIDENCE_FLAG)
 
 		if bits.Test(stat, addr.STAT_LYCLY_INTERRUPT_ENABLE) {
-			m.RequestInterrupt(addr.InterruptLCD)
+			m.interruptController.Request(addr.InterruptLCD)
 		}
 	} else {
 		stat = bits.Reset(stat, addr.STAT_COINCIDENCE_FLAG)
@@ -164,9 +194,12 @@ func (m *MMU) writeIO(address uint16, v byte) {
 		return
 	}
 
-	v |= memory.GetUnusedBits(address)
+	v |= memory.GetUnusedIOBits(address)
 
 	switch {
+	case address == addr.IF:
+		m.interruptController.SetIF(v)
+		return
 	case address == addr.JOYP:
 		m.memory.IO.Write(addrIO(address), v&0b00110000)
 		return

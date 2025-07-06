@@ -13,4 +13,6 @@ type InputState interface {
 	Press(button ButtonType)
 	Release(button ButtonType)
 	Value(sel SelectType) byte
+	Accessed() bool
+	SetAccessed(accessed bool)
 }

@@ -15,4 +15,5 @@ type BankingController interface {
 type Cartridge interface {
 	BankingController() BankingController
 	Type() CartridgeType
+	Title() string
 }

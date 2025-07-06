@@ -171,7 +171,7 @@ func NewIO() *IO {
 	m.Write(0x47, 0xFC)
 
 	for i := range uint16(0x0080) {
-		m.Write(i, m.Read(i)|GetUnusedBits(addr.MemIOBegin+i))
+		m.Write(i, m.Read(i)|GetUnusedIOBits(addr.MemIOBegin+i))
 	}
 
 	return &m
@@ -203,8 +203,8 @@ func NewContainer() *Container {
 	}
 }
 
-// GetUnusedBits returns a byte with 1's for unused bits
-func GetUnusedBits(address uint16) byte {
+// GetUnusedIOBits returns a byte with 1's for unused bits
+func GetUnusedIOBits(address uint16) byte {
 	switch address {
 	case addr.JOYP:
 		return 0b11000000

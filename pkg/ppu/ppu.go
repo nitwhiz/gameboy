@@ -3,6 +3,7 @@ package ppu
 import (
 	"github.com/nitwhiz/gameboy/pkg/addr"
 	"github.com/nitwhiz/gameboy/pkg/bits"
+	"github.com/nitwhiz/gameboy/pkg/interrupt"
 	"github.com/nitwhiz/gameboy/pkg/types"
 )
 
@@ -39,19 +40,21 @@ const BgWindowTileMapAddr9C00 = uint16(0x9C00)
 const BgWindowTileMapAddr9800 = uint16(0x9800)
 
 type PPU struct {
-	mmu    types.MMU
-	screen types.Screen
+	mmu                 types.MMU
+	screen              types.Screen
+	interruptController *interrupt.Controller
 
 	ticks             int
 	windowLineCounter uint16
 }
 
-func New(mmu types.MMU, s types.Screen) *PPU {
+func New(mmu types.MMU, s types.Screen, i *interrupt.Controller) *PPU {
 	return &PPU{
-		mmu:               mmu,
-		screen:            s,
-		ticks:             0,
-		windowLineCounter: 0,
+		mmu:                 mmu,
+		screen:              s,
+		interruptController: i,
+		ticks:               0,
+		windowLineCounter:   0,
 	}
 }
 
@@ -98,7 +101,7 @@ func (p *PPU) Ticks(ticks int) {
 	p.mmu.Write(addr.STAT, stat)
 
 	if intr && (mode != nextMode) {
-		p.mmu.RequestInterrupt(addr.InterruptLCD)
+		p.interruptController.Request(addr.InterruptLCD)
 	}
 
 	if p.ticks >= ScanlineDuration {
@@ -116,7 +119,7 @@ func (p *PPU) Ticks(ticks int) {
 		}
 
 		if nextLY == VisibleScanlineCount {
-			p.mmu.RequestInterrupt(addr.InterruptVBlank)
+			p.interruptController.Request(addr.InterruptVBlank)
 			p.windowLineCounter = 0
 		}
 

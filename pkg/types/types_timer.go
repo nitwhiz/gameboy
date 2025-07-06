@@ -1,8 +1,24 @@
 package types
 
+const (
+	TimaRunning = iota
+	TimaReloading
+	TimaReloaded
+)
+
 type Timer interface {
-	GetValue() uint16
-	SetValue(v uint16)
-	Inc()
+	GetDiv() byte
+	SetDivState(v int)
+	DivCycles() int
+	SetDivCycles(v int)
+	SetDivCounter(v uint16)
+	TIMAState() int
 	Tick(ticks int)
+
+	TIMA() byte
+	SetTIMA(v byte)
+	TAC() byte
+	SetTAC(v byte)
+	TMA() byte
+	SetTMA(v byte)
 }

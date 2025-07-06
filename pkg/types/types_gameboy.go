@@ -7,6 +7,9 @@ type GameBoy interface {
 	CPU() CPU
 	PPU() PPU
 	MMU() MMU
+	InterruptController() InterruptController
+	Input() InputState
+	Timer() Timer
 
 	PushStack(addr uint16)
 	PopStack() uint16
@@ -14,10 +17,17 @@ type GameBoy interface {
 	Start()
 	Stop()
 
+	Halted() bool
+	SetHalted(h bool)
+	HaltBug() bool
+	SetHaltBug(hb bool)
+	JustHalted() bool
+	SetJustHalted(jh bool)
+	Stopped() bool
+	SetStopped(s bool)
+
 	PressButton(button ButtonType)
 	ReleaseButton(button ButtonType)
-
-	ServiceInterrupts() (ticks int)
 
 	Fetch8() byte
 	Fetch16() uint16

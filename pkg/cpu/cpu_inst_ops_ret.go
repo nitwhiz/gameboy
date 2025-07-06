@@ -32,7 +32,7 @@ func addRETHandlers() {
 
 	// RETI
 	H.add(0xD9, func(g types.GameBoy) {
-		g.CPU().SetIME(true)
 		instRet(g)
+		g.CPU().SetIME(true)
 	})
 }

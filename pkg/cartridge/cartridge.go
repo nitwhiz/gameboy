@@ -1,6 +1,7 @@
 package cartridge
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"github.com/nitwhiz/gameboy/pkg/addr"
@@ -85,6 +86,22 @@ func (c *Cartridge) UnmarshalJSON(bs []byte) error {
 	}
 
 	return json.Unmarshal(jsonCartridge.BankingController, c.bankingController)
+}
+
+func (c *Cartridge) Title() string {
+	buf := make([]byte, 16)
+
+	for i := 0; i < 16; i++ {
+		chr := c.bankingController.Read(addr.CartridgeTitle + uint16(i))
+
+		if chr == 0x00 {
+			break
+		}
+
+		buf[i] = chr
+	}
+
+	return string(bytes.TrimRight(buf, "\x00"))
 }
 
 func getRamSize(romData []byte) int {
