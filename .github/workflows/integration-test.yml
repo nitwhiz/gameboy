@@ -17,10 +17,10 @@ jobs:
           sudo apt-get update
           sudo apt-get -y install make
 
-      - name: Setup Go 1.23.x
+      - name: Setup Go 1.24.x
         uses: actions/setup-go@v5
         with:
-          go-version: '1.23.x'
+          go-version: '1.24.x'
 
       - name: Build mooneye Test ROMs And Generate Tests
         run: make generate
