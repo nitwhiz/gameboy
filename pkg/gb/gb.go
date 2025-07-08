@@ -12,7 +12,6 @@ import (
 	"github.com/nitwhiz/gameboy/pkg/screen"
 	"github.com/nitwhiz/gameboy/pkg/timer"
 	"github.com/nitwhiz/gameboy/pkg/types"
-	"log/slog"
 	"sync"
 )
 
@@ -75,6 +74,8 @@ func New(ctx context.Context, options ...GameBoyOption) (*GameBoy, error) {
 			return nil, err
 		}
 	}
+
+	t.SetDivCounter(8)
 
 	return &gameBoy, nil
 }
@@ -221,14 +222,56 @@ func (g *GameBoy) Fetch16() uint16 {
 	return uint16(g.Fetch8()) | (uint16(g.Fetch8()) << 8)
 }
 
+const (
+	BehaviourReadOld = iota
+	BehaviourWriteCpu
+	BehaviourLCDC
+	BehaviourReadNew
+	BehaviourSTAT
+	BehaviourPalette
+	BehaviourWX
+	BehaviourSCX
+)
+
+func getMemoryWriteBehaviour(address uint16) int {
+	switch address {
+	case addr.IF:
+		return BehaviourWriteCpu
+	case addr.LCDC:
+		return BehaviourLCDC
+	case addr.SCY:
+		return BehaviourReadNew
+	case addr.STAT:
+		return BehaviourSTAT
+	case addr.BGP:
+		return BehaviourPalette
+	case addr.OBP0:
+		return BehaviourPalette
+	case addr.OBP1:
+		return BehaviourPalette
+	case addr.WX:
+		return BehaviourWX
+	case addr.SCX:
+		return BehaviourSCX
+	default:
+		return BehaviourReadOld
+	}
+}
+
 func (g *GameBoy) Write(addr uint16, v byte) {
-	// todo: conflicts
-
-	// this is GB_CONFLICT_READ_OLD; the default
-
-	g.AdvanceTicks(g.pendingTicks)
-	g.mmu.Write(addr, v)
-	g.pendingTicks = 4
+	switch getMemoryWriteBehaviour(addr) {
+	case BehaviourWriteCpu:
+		g.AdvanceTicks(g.pendingTicks + 1)
+		g.mmu.Write(addr, v)
+		g.pendingTicks = 3
+		break
+	case BehaviourReadOld:
+		fallthrough
+	default:
+		g.AdvanceTicks(g.pendingTicks)
+		g.mmu.Write(addr, v)
+		g.pendingTicks = 4
+	}
 }
 
 func (g *GameBoy) Cycle() {
@@ -247,155 +290,125 @@ func (g *GameBoy) WriteIF(v byte) byte {
 	return prev
 }
 
-func (g *GameBoy) Start() {
-	if g.mmu.Cartridge() == nil {
-		slog.Warn("missing cartridge, not starting")
+func (g *GameBoy) Step() {
+	if g.stopped {
+		g.AdvanceTicks(4)
+
+		joyp := g.mmu.Read(addr.JOYP)
+
+		if joyp&0x30 != 0x30 {
+			g.Input().SetAccessed(true)
+		}
+
+		if joyp&0xF != 0xF {
+			// todo: see STOP, this does more than that!
+
+			g.stopped = false
+			g.AdvanceTicks(8)
+		}
+
 		return
 	}
 
-	cpu.WriteGameBoyDoctorLog(g)
+	if g.halted && !g.justHalted {
+		g.AdvanceTicks(2)
+	}
 
-	g.timer.SetDivCounter(8)
+	interruptQueue := g.mmu.Read(addr.IE) & g.mmu.Read(addr.IF) & 0x1F
 
-	g.wg.Add(1)
-
-	go func() {
-		defer g.wg.Done()
-
-		for {
-			select {
-			case <-g.ctx.Done():
-				return
-			default:
-			}
-
-			// todo: debug
-
-			if g.stopped {
-				g.AdvanceTicks(4)
-
-				joyp := g.mmu.Read(addr.JOYP)
-
-				if joyp&0x30 != 0x30 {
-					g.Input().SetAccessed(true)
-				}
-
-				if joyp&0xF != 0xF {
-					// todo: see STOP, this does more than that!
-
-					g.stopped = false
-					g.AdvanceTicks(8)
-				}
-
-				continue
-			}
-
-			if g.halted && !g.justHalted {
-				g.AdvanceTicks(2)
-			}
-
-			interruptQueue := g.mmu.Read(addr.IE) & g.mmu.Read(addr.IF) & 0x1F
-
-			if g.halted {
-				if g.justHalted {
-					g.AdvanceTicks(4)
-				} else {
-					g.AdvanceTicks(2)
-				}
-			}
-
-			g.justHalted = false
-
-			ime := g.CPU().IME()
-
-			// todo: maybe condense this?
-			if g.CPU().IMEToggle() {
-				g.CPU().SetIME(!g.CPU().IME())
-				g.CPU().SetIMEToggle(false)
-			}
-
-			if g.halted && !ime && interruptQueue != 0 {
-				g.halted = false
-
-				// todo dma_cycles = 4
-				// todo: dma run
-			} else if ime && interruptQueue != 0 {
-				g.halted = false
-
-				// todo: dma cycles = 4
-				// todo: dma run
-
-				g.Fetch8()
-
-				// todo: oam bug
-
-				g.CPU().PC().Set(g.CPU().PC().Val() - 1)
-
-				// todo: trigger oam bug
-
-				g.Cycle()
-
-				sp := g.CPU().SP().Val()
-				pc := g.CPU().PC().Val()
-
-				sp -= 1
-				g.Write(sp, byte(pc>>8))
-
-				interruptQueue = g.mmu.Read(addr.IE)
-
-				if sp == addr.IF+1 {
-					sp -= 1
-					interruptQueue &= g.WriteIF(uint8(pc))
-				} else {
-					sp -= 1
-					g.Write(sp, byte(pc))
-					interruptQueue &= g.mmu.Read(addr.IF) & 0x1F
-				}
-
-				g.CPU().SP().Set(sp)
-
-				if interruptQueue != 0 {
-					currentInterrupt := types.InterruptType(0)
-
-					for (interruptQueue & 1) == 0 {
-						interruptQueue >>= 1
-						currentInterrupt += 1
-					}
-
-					g.pendingTicks -= 2
-					g.FlushPendingTicks()
-					g.pendingTicks = 2
-
-					g.interruptController.Flush(currentInterrupt)
-
-					pc = interrupt.GetISR(currentInterrupt)
-				} else {
-					pc = 0
-				}
-
-				g.CPU().PC().Set(pc)
-				g.CPU().SetIME(false)
-			} else if !g.halted {
-				if g.haltBug {
-					g.CPU().PC().Set(g.CPU().PC().Val() - 1)
-					g.haltBug = false
-				}
-
-				cpu.H.ExecuteNextOpcode(g)
-			}
-
-			g.FlushPendingTicks()
-
-			// end of cpu run
-
-			if g.interruptController.IsRequested(addr.InterruptJoypad) {
-				g.input.SetAccessed(true)
-			}
+	if g.halted {
+		if g.justHalted {
+			g.AdvanceTicks(4)
+		} else {
+			g.AdvanceTicks(2)
 		}
-	}()
-}
+	}
 
-func (g *GameBoy) Stop() {
-	g.cancel()
-	g.wg.Wait()
+	g.justHalted = false
+
+	ime := g.CPU().IME()
+
+	// todo: maybe condense this?
+	if g.CPU().IMEToggle() {
+		g.CPU().SetIME(!g.CPU().IME())
+		g.CPU().SetIMEToggle(false)
+	}
+
+	if g.halted && !ime && interruptQueue != 0 {
+		g.halted = false
+
+		// todo dma_cycles = 4
+		// todo: dma run
+	} else if ime && interruptQueue != 0 {
+		g.halted = false
+
+		// todo: dma cycles = 4
+		// todo: dma run
+
+		g.Fetch8()
+
+		// todo: oam bug
+
+		g.CPU().PC().Set(g.CPU().PC().Val() - 1)
+
+		// todo: trigger oam bug
+
+		g.Cycle()
+
+		sp := g.CPU().SP().Val()
+		pc := g.CPU().PC().Val()
+
+		sp -= 1
+		g.Write(sp, byte(pc>>8))
+
+		interruptQueue = g.mmu.Read(addr.IE)
+
+		if sp == addr.IF+1 {
+			sp -= 1
+			interruptQueue &= g.WriteIF(uint8(pc))
+		} else {
+			sp -= 1
+			g.Write(sp, byte(pc))
+			interruptQueue &= g.mmu.Read(addr.IF) & 0x1F
+		}
+
+		g.CPU().SP().Set(sp)
+
+		if interruptQueue != 0 {
+			currentInterrupt := types.InterruptType(0)
+
+			for (interruptQueue & 1) == 0 {
+				interruptQueue >>= 1
+				currentInterrupt += 1
+			}
+
+			g.pendingTicks -= 2
+			g.FlushPendingTicks()
+			g.pendingTicks = 2
+
+			g.interruptController.Flush(currentInterrupt)
+
+			pc = interrupt.GetISR(currentInterrupt)
+		} else {
+			pc = 0
+		}
+
+		g.CPU().PC().Set(pc)
+		g.CPU().SetIME(false)
+	} else if !g.halted {
+		if g.haltBug {
+			g.CPU().PC().Set(g.CPU().PC().Val() - 1)
+			g.haltBug = false
+		}
+
+		cpu.H.ExecuteNextOpcode(g)
+	}
+
+	g.FlushPendingTicks()
+
+	// end of cpu run
+
+	if g.interruptController.IsRequested(addr.InterruptJoypad) {
+		g.input.SetAccessed(true)
+	}
 }

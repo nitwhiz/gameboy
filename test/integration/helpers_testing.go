@@ -17,6 +17,8 @@ import (
 	"time"
 )
 
+const timeout = time.Second * 30
+
 type romTestCase struct {
 	t                  *testing.T
 	gameBoy            *gb.GameBoy
@@ -35,7 +37,7 @@ func newRomTestCase(t *testing.T, romPath string, expectedScreenshot *image.Imag
 		t.Fatal(err)
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, time.Second*60)
+	ctx, cancel := context.WithTimeout(ctx, timeout)
 
 	g, err := gb.New(
 		ctx,
@@ -71,8 +73,6 @@ func newRomTestCase(t *testing.T, romPath string, expectedScreenshot *image.Imag
 }
 
 func (r *romTestCase) runGameBoy() {
-	r.gameBoy.Start()
-
 	for {
 		select {
 		case <-r.ctx.Done():
@@ -85,6 +85,9 @@ func (r *romTestCase) runGameBoy() {
 
 			return
 		default:
+			r.gameBoy.Step()
+			r.checkExpectedScreenshot()
+
 			break
 		}
 	}

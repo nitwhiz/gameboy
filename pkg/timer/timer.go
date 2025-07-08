@@ -134,7 +134,7 @@ func (t *Timer) TAC() byte {
 	return t.tac
 }
 
-func (t *Timer) glitch(v byte) {
+func (t *Timer) emulateTacBehaviour(v byte) {
 	if t.tac&4 == 0 {
 		return
 	}
@@ -150,7 +150,7 @@ func (t *Timer) glitch(v byte) {
 }
 
 func (t *Timer) SetTAC(v byte) {
-	t.glitch(v)
+	t.emulateTacBehaviour(v)
 	t.tac = v
 }
 

@@ -1,0 +1,18 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="TEST:MOONEYE:TIMER" type="GoTestRunConfiguration" factoryName="Go Test">
+    <module name="gameboy" />
+    <working_directory value="$PROJECT_DIR$/test/integration" />
+    <go_parameters value="-timeout 1h" />
+    <envs>
+      <env name="GOMAXPROCS" value="10" />
+    </envs>
+    <root_directory value="$PROJECT_DIR$" />
+    <kind value="PACKAGE" />
+    <package value="github.com/nitwhiz/gameboy/test/integration" />
+    <directory value="$PROJECT_DIR$" />
+    <filePath value="$PROJECT_DIR$" />
+    <framework value="gotest" />
+    <pattern value="^\QTestMooneyeRoms\E$/^\Qacceptance\E$/^\Qtimer\E$" />
+    <method v="2" />
+  </configuration>
+</component>

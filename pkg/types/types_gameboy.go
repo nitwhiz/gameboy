@@ -14,8 +14,7 @@ type GameBoy interface {
 	PushStack(addr uint16)
 	PopStack() uint16
 
-	Start()
-	Stop()
+	Step()
 
 	Halted() bool
 	SetHalted(h bool)
